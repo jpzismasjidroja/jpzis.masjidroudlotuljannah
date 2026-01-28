@@ -7,14 +7,12 @@ import {
     LogOut, LayoutDashboard, FileText, Wallet, CheckCircle, TrendingUp, Users,
     Plus, Edit, Trash2, Camera, ExternalLink, Save, Eye, EyeOff, Download, Menu, X
 } from 'lucide-react';
-import ReactQuill, { Quill } from 'react-quill-new';
-import ImageResize from 'quill-image-resize-module-react';
 import 'react-quill-new/dist/quill.snow.css';
 import { supabase } from '../supabaseClient';
 import { formatRupiah } from '../utils';
-
+import ReactQuill, { Quill } from 'react-quill-new';
 // Register Quill Modules
-Quill.register('modules/imageResize', ImageResize);
+// Quill.register('modules/imageResize', ImageResize);
 
 const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonations, onLogout }) => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -56,11 +54,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             [{ 'list': 'ordered' }, { 'list': 'indent' }, { 'indent': '-1' }, { 'indent': '+1' }],
             ['link', 'image', 'video'],
             ['clean']
-        ],
-        imageResize: {
-            parchment: Quill.import('parchment'),
-            modules: ['Resize', 'DisplaySize']
-        }
+        ]
     }), []);
 
     const formats = [

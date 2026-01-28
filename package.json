@@ -13,7 +13,6 @@
     "@supabase/supabase-js": "^2.90.1",
     "lucide-react": "^0.562.0",
     "prop-types": "^15.8.1",
-    "quill-image-resize-module-react": "^3.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-is": "^19.2.3",
