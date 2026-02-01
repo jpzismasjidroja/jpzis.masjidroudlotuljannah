@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogIn } from 'lucide-react';
 
-const Navbar = ({ user }) => {
+const Navbar = ({ user, showAdminLink = true }) => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
 
@@ -17,9 +17,10 @@ const Navbar = ({ user }) => {
     const navItems = [
         { path: '/', label: 'Beranda' },
         { path: '/profile', label: 'Profil' },
+        { path: '/gallery', label: 'Galeri' },
         { path: '/donate', label: 'Infaq' },
         { path: '/transparency', label: 'Transparansi' },
-        { path: '/articles', label: 'Kajian' },
+        { path: '/articles', label: 'Artikel' },
         { path: '/contact', label: 'Hubungi' },
     ];
 
@@ -28,17 +29,19 @@ const Navbar = ({ user }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                 <div className="flex justify-between items-center h-full">
                     <Link to="/" className="flex items-center cursor-pointer gap-4 group">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-[#d0a237] rounded-full blur opacity-20 group-hover:opacity-40 transition"></div>
-                            <div className="bg-gradient-to-br from-[#d0a237] to-[#8c6b24] p-0.5 rounded-full shadow-lg">
-                                <div className="bg-[#29412d] p-1 rounded-full border border-[#d0a237]/50 overflow-hidden w-12 h-12 flex items-center justify-center">
-                                    <img src="/assets/img/logo.jpg" alt="Logo" className="w-full h-full object-cover rounded-full" />
-                                </div>
-                            </div>
+                        {/* Logo without box, using drop-shadow for contrast */}
+                        <div className="transition-transform transform group-hover:scale-105 duration-300">
+                            <img
+                                src="/header-logo.webp"
+                                alt="JPZIS Masjid Jami' Raudlatul Jannah"
+                                className="h-12 md:h-16 w-auto object-contain"
+                            />
                         </div>
-                        <div>
-                            <h1 className="text-xl md:text-2xl font-bold font-serif text-amber-50 tracking-wide uppercase drop-shadow-md">JPZIS/LAZIZ</h1>
-                            <p className="text-[7.6px] text-[#d0a237] tracking-[0.1em] uppercase font-medium">Masjid Jami' Raudlatul Jannah</p>
+                        {/* Logo Container */}
+                        <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-[#d0a237]/20 backdrop-blur-sm">
+                            <img src="/logo-masjid.webp" alt="Masjid Jami" className="h-12 w-auto object-contain rounded-md" />
+                            <div className="w-px h-8 bg-[#d0a237]/30"></div>
+                            <img src="/logo-jpzis.webp" alt="JPZIS" className="h-12 w-auto object-contain rounded-md" />
                         </div>
                     </Link>
 
@@ -47,28 +50,30 @@ const Navbar = ({ user }) => {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-500 font-sans ${isActive(item.path)
+                                className={`px-5 py-3 text-sm font-medium rounded-full transition-all duration-500 font-sans ${isActive(item.path)
                                     ? 'text-[#29412d] bg-gradient-to-r from-[#d0a237] to-[#fcd34d] shadow-lg shadow-[#d0a237]/20'
-                                    : 'text-amber-100/70 hover:text-amber-50 hover:bg-white/5'
+                                    : 'text-amber-50/90 hover:text-amber-50 hover:bg-white/5'
                                     }`}
                             >
                                 {item.label}
                             </Link>
                         ))}
                         <div className="h-6 w-px bg-white/10 mx-2"></div>
-                        {user ? (
-                            <Link to="/admin" className="bg-[#113642] text-emerald-100 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#0f392f] transition border border-[#1f3322]">
-                                Admin
-                            </Link>
-                        ) : (
-                            <Link to="/login" className="text-[#d0a237]/60 hover:text-[#d0a237] font-bold text-sm px-3 flex gap-1 items-center">
-                                <LogIn size={16} />
-                            </Link>
+                        {showAdminLink && (
+                            user ? (
+                                <Link to="/admin" className="bg-[#113642] text-emerald-100 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#0f392f] transition border border-[#1f3322]">
+                                    Admin
+                                </Link>
+                            ) : (
+                                <Link to="/login" className="text-[#d0a237]/90 hover:text-[#d0a237] font-bold text-sm p-3 flex gap-1 items-center" aria-label="Login">
+                                    <LogIn size={20} />
+                                </Link>
+                            )
                         )}
                     </div>
 
                     <div className="md:hidden flex items-center">
-                        <button onClick={() => setIsOpen(!isOpen)} className="text-amber-100 p-2">
+                        <button onClick={() => setIsOpen(!isOpen)} className="text-amber-100 p-2" aria-label="Toggle Menu">
                             {isOpen ? <X size={28} /> : <Menu size={28} />}
                         </button>
                     </div>

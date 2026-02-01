@@ -53,37 +53,38 @@ const ArticleDetailPage = ({ articles }) => {
 
                 <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* HERO SECTION */}
-                    <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-amber-100 mb-12 relative">
-                        {selectedArticle.image && (
-                            <div className="relative w-full aspect-video md:aspect-[21/9]">
-                                <img src={selectedArticle.image} alt={selectedArticle.title} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/20 to-transparent opacity-90"></div>
-                            </div>
-                        )}
+                    {/* HERO IMAGE SECTION */}
+                    {selectedArticle.image && (
+                        <div className="rounded-[2rem] shadow-xl overflow-hidden border border-amber-100 mb-8 w-full aspect-video md:aspect-[21/9] relative z-10">
+                            <img src={selectedArticle.image} alt={selectedArticle.title} className="w-full h-full object-cover" />
+                        </div>
+                    )}
 
-                        <div className={`p-8 md:p-12 ${selectedArticle.image ? 'absolute bottom-0 left-0 text-white w-full' : ''}`}>
-                            <div className="flex flex-wrap gap-3 mb-4">
-                                <span className="bg-[#d0a237] text-[#022c22] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">{selectedArticle.category}</span>
-                                {selectedArticle.tags && selectedArticle.tags.map(tag => (
-                                    <span key={tag} className="bg-white/20 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1"><Tag size={12} /> {tag}</span>
-                                ))}
+                    {/* ARTICLE HEADER (Title & Metadata) */}
+                    <div className="mb-12">
+                        <div className="flex flex-wrap gap-3 mb-6">
+                            <span className="bg-[#d0a237] text-[#022c22] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">{selectedArticle.category}</span>
+                            {selectedArticle.tags && selectedArticle.tags.map(tag => (
+                                <span key={tag} className="bg-white border border-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1"><Tag size={12} /> {tag}</span>
+                            ))}
+                        </div>
+
+                        <h1 className="text-3xl md:text-5xl font-serif font-bold leading-tight mb-6 text-[#022c22]">
+                            {selectedArticle.title}
+                        </h1>
+
+                        <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-slate-500">
+                            <div className="flex items-center gap-2">
+                                <Calendar size={16} className="text-[#d0a237]" />
+                                <span>{new Date(selectedArticle.date).toLocaleDateString()}</span>
                             </div>
-                            <h1 className="text-3xl md:text-5xl font-serif font-bold leading-tight mb-6 drop-shadow-md">
-                                {selectedArticle.title}
-                            </h1>
-                            <div className={`flex flex-wrap items-center gap-6 text-sm font-medium ${selectedArticle.image ? 'text-amber-100/80' : 'text-slate-500'}`}>
-                                <div className="flex items-center gap-2">
-                                    <Calendar size={16} className="text-[#d0a237]" />
-                                    <span>{new Date(selectedArticle.date).toLocaleDateString()}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <User size={16} className="text-[#d0a237]" />
-                                    <span>Administrator</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock size={16} className="text-[#d0a237]" />
-                                    <span>5 min read</span>
-                                </div>
+                            <div className="flex items-center gap-2">
+                                <User size={16} className="text-[#d0a237]" />
+                                <span>{selectedArticle.author || 'Administrator'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-[#d0a237]" />
+                                <span>5 min read</span>
                             </div>
                         </div>
                     </div>

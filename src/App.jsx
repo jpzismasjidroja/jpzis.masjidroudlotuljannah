@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { isAdminDomain } from './config';
 
 // Components
 import Navbar from './components/Navbar';
@@ -13,6 +14,7 @@ import DonationPage from './pages/DonationPage';
 import TransparencyPage from './pages/TransparencyPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
+import GalleryPage from './pages/GalleryPage';
 import ContactPage from './pages/ContactPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -32,7 +34,13 @@ function App() {
     const [user, setUser] = useState(null);
     const [donations, setDonations] = useState([]);
     const [articles, setArticles] = useState([]);
+
+    const [isAdminAccess, setIsAdminAccess] = useState(false);
     const location = useLocation();
+
+    useEffect(() => {
+        setIsAdminAccess(isAdminDomain());
+    }, []);
 
     // --- FETCH DATA ---
     const fetchDonations = async () => {
@@ -116,7 +124,8 @@ function App() {
         <div className="font-sans text-slate-800 relative">
             <GlobalBackground />
 
-            {!isAdminRoute && <Navbar user={user} />}
+            {/* Navbar */}
+            {!location.pathname.startsWith('/admin') && location.pathname !== '/login' && <Navbar user={user} showAdminLink={isAdminAccess} />}
 
             <Routes>
                 <Route path="/" element={<HomePage articles={articles} donations={donations} />} />
@@ -125,24 +134,34 @@ function App() {
                 <Route path="/transparency" element={<TransparencyPage donations={donations} />} />
                 <Route path="/articles" element={<ArticlesPage articles={articles} />} />
                 <Route path="/articles/:id" element={<ArticleDetailPage articles={articles} />} />
+                <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/contact" element={<ContactPage />} />
 
-                <Route path="/login" element={!user ? <AdminLogin onLogin={handleLogin} /> : <Navigate to="/admin" />} />
-
-                <Route path="/admin" element={
-                    user ? (
-                        <AdminDashboard
-                            user={user}
-                            articles={articles}
-                            donations={donations}
-                            fetchArticles={fetchArticles}
-                            fetchDonations={fetchDonations}
-                            onLogout={handleLogout}
-                        />
-                    ) : (
-                        <Navigate to="/login" />
-                    )
-                } />
+                {/* Admin Routes - Only accessible if isAdminAccess is true */}
+                {isAdminAccess ? (
+                    <>
+                        <Route path="/login" element={!user ? <AdminLogin onLogin={handleLogin} /> : <Navigate to="/admin" />} />
+                        <Route path="/admin" element={
+                            user ? (
+                                <AdminDashboard
+                                    user={user}
+                                    articles={articles}
+                                    donations={donations}
+                                    fetchArticles={fetchArticles}
+                                    fetchDonations={fetchDonations}
+                                    onLogout={handleLogout}
+                                />
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        } />
+                    </>
+                ) : (
+                    <>
+                        <Route path="/login" element={<Navigate to="/" replace />} />
+                        <Route path="/admin" element={<Navigate to="/" replace />} />
+                    </>
+                )}
 
                 {/* Fallback 404 - Redirect to Home */}
                 <Route path="*" element={<Navigate to="/" />} />

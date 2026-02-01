@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, Heart, ArrowRight, FileText, Wallet, CheckCircle, TrendingUp, Users } from 'lucide-react';
+import { Star, Heart, ArrowRight, FileText, Wallet, CheckCircle, TrendingUp, Users, Image as ImageIcon } from 'lucide-react';
 import { formatRupiah } from '../utils';
 import ArticleCard from '../components/ArticleCard';
 
@@ -14,6 +14,8 @@ const HomePage = ({ articles, donations }) => {
     const navigate = useNavigate();
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
+    const [visible, setVisible] = useState(true);
+
     const quotesData = [
         { text: "Hanyalah yang memakmurkan masjid-masjid Allah ialah orang-orang yang beriman kepada Allah dan hari kemudian...", source: "(QS. At-Taubah: 18)" },
         { text: "Dan janganlah kamu menyerupai orang-orang yang memecah belah agama mereka...", source: "(QS. Al-Rum: 32)" },
@@ -24,7 +26,11 @@ const HomePage = ({ articles, donations }) => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentQuoteIndex((prev) => (prev + 1) % quotesData.length);
+            setVisible(false); // Fade out
+            setTimeout(() => {
+                setCurrentQuoteIndex((prev) => (prev + 1) % quotesData.length);
+                setVisible(true); // Fade in
+            }, 500); // Wait for fade out duration
         }, 5000);
         return () => clearInterval(interval);
     }, []);
@@ -44,22 +50,22 @@ const HomePage = ({ articles, donations }) => {
                     </svg>
                 </div>
                 <div className="absolute inset-0 z-0">
-                    <img src="https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=2000" alt="Mosque Interior" className="w-full h-full object-cover mix-blend-overlay" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#29412d] via-[#29412d]/40 to-[#113642]/60"></div>
+                    <img src="/hero-mosque.webp" alt="Mosque Aerial View" className="w-full h-full object-cover" fetchPriority="high" loading="eager" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#29412d] via-[#29412d]/70 to-[#000]/60"></div>
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
                 </div>
                 <div className="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex-1 flex flex-col justify-center">
-                    <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-[#d0a237]/30 bg-[#000]/20 backdrop-blur-sm text-[#d0a237] text-sm font-serif tracking-widest mb-8 mx-auto animate-in slide-in-from-bottom-4 fade-in duration-1000 uppercase">
-                        <Star size={14} className="fill-[#d0a237]" /> Ahlan Wa Sahlan <Star size={14} className="fill-[#d0a237]" />
+                    <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-[#a0781e]/30 bg-[#000]/20 backdrop-blur-sm text-[#a0781e] text-sm font-serif tracking-widest mb-8 mx-auto animate-in slide-in-from-bottom-4 fade-in duration-1000 uppercase">
+                        <Star size={14} className="fill-[#a0781e]" /> Ahlan Wa Sahlan <Star size={14} className="fill-[#a0781e]" />
                     </div>
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-amber-50 tracking-tight leading-none mb-8 drop-shadow-2xl animate-in slide-in-from-bottom-8 fade-in duration-1000 delay-100">
-                        Merawat <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d0a237] via-yellow-200 to-[#d0a237] italic">Jagat</span>,<br />
-                        Membangun <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d0a237] via-yellow-200 to-[#d0a237] italic">Peradaban</span>
+                        Lazis <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a0781e] via-yellow-200 to-[#a0781e] italic">Masjid</span><br />
+                        Raudlatul <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a0781e] via-yellow-200 to-[#a0781e] italic">Jannah</span>
                     </h1>
 
                     {/* QUOTES HERO */}
-                    <div className="min-h-[100px] mb-8 animate-in slide-in-from-bottom-12 fade-in duration-1000 delay-200">
-                        <p className="text-lg md:text-2xl text-amber-100/90 max-w-3xl mx-auto leading-relaxed transition-all duration-500 font-sans font-light">
+                    <div className="min-h-[100px] mb-8">
+                        <p className={`text-lg md:text-2xl text-white max-w-3xl mx-auto leading-relaxed transition-opacity duration-500 font-sans font-light ${visible ? 'opacity-100' : 'opacity-0'}`}>
                             "{quotesData[currentQuoteIndex].text}"
                             <span className="block mt-3 text-sm text-[#d0a237] font-serif tracking-widest font-bold">
                                 {quotesData[currentQuoteIndex].source}
@@ -79,6 +85,7 @@ const HomePage = ({ articles, donations }) => {
 
             {/* 2. OVERLAY CARDS */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-32 relative z-30">
+                <h2 className="sr-only">Layanan Utama</h2>
                 <div className="grid md:grid-cols-3 gap-8">
                     {/* Card 1 */}
                     <Link to="/donate" className="bg-[#FFFCF5] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
@@ -94,17 +101,18 @@ const HomePage = ({ articles, donations }) => {
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
                         <div className="bg-[#d0a237] w-14 h-14 rounded-full flex items-center justify-center text-[#29412d] mb-6 shadow-lg group-hover:bg-white group-hover:text-[#29412d] transition"><FileText size={24} /></div>
                         <h3 className="text-2xl font-bold text-amber-50 mb-2 font-serif">Laporan Keuangan</h3>
-                        <p className="text-amber-100/60 mb-6 text-sm leading-relaxed">Transparansi penuh dalam pengelolaan dana umat.</p>
+                        <p className="text-amber-50/90 mb-6 text-sm leading-relaxed">Transparansi penuh dalam pengelolaan dana umat.</p>
                         <span className="text-[#d0a237] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all">Lihat Data <ArrowRight size={16} /></span>
                     </Link>
 
                     {/* Card 3 */}
-                    <Link to="/donate" className="bg-[#113642] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
+                    {/* Card 3 - Galeri */}
+                    <Link to="/gallery" className="bg-[#113642] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#d0a237] rounded-bl-[100px] -mr-8 -mt-8 opacity-20 group-hover:scale-110 transition"></div>
-                        <div className="bg-[#d0a237] w-14 h-14 rounded-full flex items-center justify-center text-[#113642] mb-6 shadow-lg group-hover:bg-white group-hover:text-[#113642] transition"><Wallet size={24} /></div>
-                        <h3 className="text-2xl font-bold text-amber-50 mb-2 font-serif">Akses Zakat & Waqof</h3>
-                        <p className="text-amber-100/70 mb-6 text-sm leading-relaxed">Layanan pembayaran zakat, infaq, dan wakaf yang mudah dan transparan.</p>
-                        <span className="text-[#d0a237] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all">Salurkan Sekarang <ArrowRight size={16} /></span>
+                        <div className="bg-[#d0a237] w-14 h-14 rounded-full flex items-center justify-center text-[#113642] mb-6 shadow-lg group-hover:bg-white group-hover:text-[#113642] transition"><ImageIcon size={24} /></div>
+                        <h3 className="text-2xl font-bold text-amber-50 mb-2 font-serif">Galeri Kegiatan</h3>
+                        <p className="text-amber-50/90 mb-6 text-sm leading-relaxed">Dokumentasi kegiatan sosial dan keagamaan masjid.</p>
+                        <span className="text-[#d0a237] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all">Lihat Foto <ArrowRight size={16} /></span>
                     </Link>
                 </div>
             </div>
@@ -117,16 +125,16 @@ const HomePage = ({ articles, donations }) => {
                         <div className="md:w-1/2 relative">
                             <div className="absolute inset-0 bg-[#d0a237] rounded-[3rem] rotate-3 opacity-20 transform translate-x-4 translate-y-4"></div>
                             <div className="relative rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl">
-                                <img src="/assets/img/masjid.png" alt="Masjid Roudlotul Jannah" className="w-full h-[500px] object-cover hover:scale-105 transition duration-700" />
+                                <img src="/assets/img/masjid-h.webp" alt="Masjid Roudlotul Jannah" className="w-full h-[500px] object-cover hover:scale-105 transition duration-700" />
                                 <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#022c22] to-transparent p-8">
-                                    <p className="text-[#d0a237] font-serif italic text-lg">"Sebaik-baik tempat adalah Masjid"</p>
+                                    <p className="text-[#ffffff] font-serif italic text-lg">"Sebaik-baik tempat adalah Masjid"</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Kolom Teks Visi Misi */}
                         <div className="md:w-1/2">
-                            <span className="text-[#d0a237] font-bold tracking-widest uppercase text-sm font-serif">Profil Singkat</span>
+                            <span className="text-[#854d0e] font-bold tracking-widest uppercase text-sm font-serif">Profil Singkat</span>
                             <h2 className="text-4xl font-bold text-[#29412d] font-serif mt-2 mb-6">Visi & Misi Masjid</h2>
 
                             <div className="space-y-8">
@@ -168,7 +176,7 @@ const HomePage = ({ articles, donations }) => {
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-bold text-amber-50 font-serif">Amanah & Transparansi</h2>
                         <div className="h-1 w-20 bg-[#d0a237] mx-auto mt-4 rounded-full"></div>
-                        <p className="text-amber-100/60 mt-4 max-w-2xl mx-auto">Kami menyajikan data secara terbuka sebagai bentuk pertanggungjawaban kepada umat.</p>
+                        <p className="text-amber-50/90 mt-4 max-w-2xl mx-auto">Kami menyajikan data secara terbuka sebagai bentuk pertanggungjawaban kepada umat.</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">

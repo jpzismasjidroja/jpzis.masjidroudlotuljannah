@@ -21,10 +21,10 @@ const ArticleCard = ({ article }) => {
                 <p className="text-slate-500 text-sm mb-6 line-clamp-3 font-sans leading-relaxed grow">{article.excerpt}</p>
                 <div className="flex flex-wrap gap-2 justify-center mb-4">
                     {article.tags && article.tags.slice(0, 3).map(tag => (
-                        <span key={tag} className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">#{tag}</span>
+                        <span key={tag} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">#{tag}</span>
                     ))}
                 </div>
-                <button className="text-[#064e3b] font-bold text-sm flex items-center gap-2 mx-auto hover:text-amber-600 transition-all font-serif italic border-b border-transparent hover:border-amber-600 pb-0.5 mt-auto">Baca Selengkapnya <ArrowRight size={14} /></button>
+                <button className="text-[#064e3b] font-bold text-sm flex items-center gap-2 mx-auto hover:text-amber-600 transition-all font-serif italic border-b border-transparent hover:border-amber-600 pb-2 mt-auto p-2">Baca Selengkapnya <ArrowRight size={14} /></button>
             </div>
         </Link>
     );
