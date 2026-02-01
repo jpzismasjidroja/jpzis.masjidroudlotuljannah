@@ -15,15 +15,17 @@ const Footer = () => (
                     <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-4 mb-6">
                         {/* Logo Container */}
                         <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-[#d0a237]/20 backdrop-blur-sm">
-                            <img src="/logo-masjid.jpg" alt="Masjid Jami" className="h-12 w-auto object-contain rounded-md" />
+                            <img src="/logo-masjid.webp" alt="Masjid Jami" className="h-12 w-auto object-contain rounded-md" />
                             <div className="w-px h-8 bg-[#d0a237]/30"></div>
-                            <img src="/logo-jpzis.jpg" alt="JPZIS" className="h-12 w-auto object-contain rounded-md" />
+                            <img src="/logo-jpzis.webp" alt="JPZIS" className="h-12 w-auto object-contain rounded-md" />
                         </div>
-
-                        {/* Text Container */}
-                        <div className="text-center md:text-left">
-                            <h3 className="text-2xl font-bold text-amber-50 font-serif leading-none tracking-wide">LAZIZ</h3>
-                            <p className="text-[10px] text-[#d0a237] tracking-[0.2em] uppercase font-bold mt-1">Masjid Jami' Raudlatul Jannah</p>
+                        {/* Logo without box, using drop-shadow for contrast */}
+                        <div className="transition-transform transform group-hover:scale-105 duration-300">
+                            <img
+                                src="/header-logo.webp"
+                                alt="JPZIS Masjid Jami' Raudlatul Jannah"
+                                className="h-12 md:h-16 w-auto object-contain"
+                            />
                         </div>
                     </div>
                     <p className="font-sans text-sm leading-relaxed mb-6 max-w-sm mx-auto md:mx-0">

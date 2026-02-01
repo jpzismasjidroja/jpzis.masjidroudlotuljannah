@@ -29,6 +29,12 @@ const Navbar = ({ user, showAdminLink = true }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
                 <div className="flex justify-between items-center h-full">
                     <Link to="/" className="flex items-center cursor-pointer gap-4 group">
+                        {/* Logo Container */}
+                        <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-[#d0a237]/20 backdrop-blur-sm">
+                            <img src="/logo-masjid.webp" alt="Masjid Jami" className="h-12 w-auto object-contain rounded-md" />
+                            <div className="w-px h-8 bg-[#d0a237]/30"></div>
+                            <img src="/logo-jpzis.webp" alt="JPZIS" className="h-12 w-auto object-contain rounded-md" />
+                        </div>
                         {/* Logo without box, using drop-shadow for contrast */}
                         <div className="transition-transform transform group-hover:scale-105 duration-300">
                             <img
@@ -37,12 +43,7 @@ const Navbar = ({ user, showAdminLink = true }) => {
                                 className="h-12 md:h-16 w-auto object-contain"
                             />
                         </div>
-                        {/* Logo Container */}
-                        <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-[#d0a237]/20 backdrop-blur-sm">
-                            <img src="/logo-masjid.webp" alt="Masjid Jami" className="h-12 w-auto object-contain rounded-md" />
-                            <div className="w-px h-8 bg-[#d0a237]/30"></div>
-                            <img src="/logo-jpzis.webp" alt="JPZIS" className="h-12 w-auto object-contain rounded-md" />
-                        </div>
+
                     </Link>
 
                     <div className="hidden md:flex items-center gap-1 bg-[#1f3322] p-1.5 rounded-full border border-white/5 shadow-inner">
