@@ -1,20 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, History, BookOpen, Users, Star, Leaf } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const ProfilePage = () => {
     const [activeTab, setActiveTab] = useState('visi_misi');
+    const [staffMembers, setStaffMembers] = useState([]);
 
-    const staffMembers = [
-        { name: "Ust. Farhan Al-Ghifari", role: "Wakil Ketua", image: "/assets/img/1 (1).jpeg" },
-        { name: "Dimas Anggara, S.Kom.", role: "Sekretaris 1", image: "/assets/img/1 (2).jpeg" },
-        { name: "H. Irwan Wijaya, S.E.", role: "Bendahara 1", image: "/assets/img/1 (1).jpg" },
-        { name: "Ust. Zulkifli Hasan", role: "Kabid. Ibadah & Dakwah", image: "/assets/img/1 (2).jpg" },
-        { name: "Ibu Hj. Siti Aminah", role: "Kabid. Pendidikan", image: "/assets/img/1 (3).jpg" },
-        { name: "Ahmad Syauqi", role: "Kabid. Sosial & ZISWAF", image: "/assets/img/1 (4).jpg" },
-        { name: "Bapak Joko Susilo", role: "Kabid. Sarana Prasarana", image: "/assets/img/1 (1).jpeg" },
-        { name: "Fikri Haikal", role: "Kabid. Humas & Multimedia", image: "/assets/img/1 (2).jpeg" },
-        { name: "Rizky Pratama", role: "Sekretaris 2", image: "/assets/img/1 (1).jpg" }
-    ];
+    useEffect(() => {
+        const fetchPengurus = async () => {
+            const { data, error } = await supabase
+                .from('pengurus')
+                .select('*')
+                .order('order', { ascending: true }); // or order by created_at or name
+
+            if (error) {
+                console.error('Error fetching pengurus:', error);
+            } else {
+                // Formatting data to match expected structure if needed, though exact match is fine
+                // The DB fields: name, role, image_url
+                // The UI expects: name, role, image
+                setStaffMembers(data.map(d => ({
+                    ...d,
+                    image: d.image_url
+                })));
+            }
+        };
+
+        fetchPengurus();
+    }, []);
+
+    // Fallback if DB is empty or loading (optional, but good to keep dummy data if empty?)
+    // For now, let's just initialize as empty. If user adds data via Admin, it shows up.
+    // If we want to keep dummy data until real data exists:
+    // const displayStaff = staffMembers.length > 0 ? staffMembers : DEFAULT_STAFF;
 
     const historyData = [
         { year: "1965", text: "Masjid Jami’ Roudlotul Jannah terletak di RW 05, Kelurahan Tasikmadu, dan telah menjadi pusat ibadah serta kegiatan keagamaan masyarakat sejak tahun 1965. Masjid ini didirikan atas inisiatif KH. Yusuf bersama warga setempat, bermula dari bangunan sederhana berukuran 6 x 10 meter yang menjadi tonggak awal kehidupan spiritual masyarakat sekitar." },
@@ -214,41 +232,72 @@ const ProfilePage = () => {
                     {/* === TAB 4: STRUKTUR PENGURUS === */}
                     {activeTab === 'struktur' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 text-center">
-                            <div className="mb-10">
-                                <h3 className="font-bold text-2xl text-[#29412d] font-serif mb-2">Dewan Kemakmuran Masjid (DKM)</h3>
-                                <p className="text-[#d0a237] font-bold italic font-serif">Penasihat: KH. Abdullah Faqih</p>
-                            </div>
+                            {(() => {
+                                // Filter Special Roles
+                                const penasihat = staffMembers.find(m => m.role.toLowerCase().includes('penasihat'));
+                                const ketua = staffMembers.find(m => m.role.toLowerCase().includes('ketua') && !m.role.toLowerCase().includes('wakil'));
 
-                            {/* KETUA DKM */}
-                            <div className="flex justify-center mb-12">
-                                <div className="bg-[#29412d] p-8 rounded-[2rem] shadow-xl relative overflow-hidden group max-w-sm w-full transform hover:-translate-y-2 transition duration-500">
-                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
-                                    <div className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-[#d0a237] relative z-10 overflow-hidden shadow-lg bg-white">
-                                        <img src="/assets/img/1 (4).jpg" alt="Ketua DKM" className="w-full h-full object-cover hover:scale-110 transition duration-500" />
-                                    </div>
-                                    <h4 className="font-serif font-bold text-xl text-amber-50 relative z-10">H. Muhammad Salman, S.T.</h4>
-                                    <p className="text-[#d0a237] text-sm uppercase tracking-widest mt-2 relative z-10 font-bold">Ketua DKM</p>
-                                </div>
-                            </div>
+                                // Filter remaining members for the grid (excluding Penasihat and Ketua)
+                                const gridMembers = staffMembers.filter(m =>
+                                    m.id !== penasihat?.id && m.id !== ketua?.id
+                                );
 
-                            {/* GRID ANGGOTA */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {staffMembers.map((member, i) => (
-                                    <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg hover:shadow-2xl transition group hover:-translate-y-1">
-                                        <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-2 border-slate-200 group-hover:border-[#d0a237] transition shadow-sm bg-slate-50">
-                                            <img
-                                                src={member.image}
-                                                alt={member.name}
-                                                className="w-full h-full object-cover hover:scale-110 transition duration-500"
-                                                onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Foto"; e.target.className = "p-2 opacity-50" }}
-                                            />
+                                return (
+                                    <>
+                                        <div className="mb-10">
+                                            <h3 className="font-bold text-2xl text-[#29412d] font-serif mb-2">Dewan Kemakmuran Masjid (DKM)</h3>
+                                            {penasihat && (
+                                                <p className="text-[#d0a237] font-bold italic font-serif">Penasihat: {penasihat.name}</p>
+                                            )}
                                         </div>
-                                        <h4 className="font-bold text-[#113642] font-serif text-lg">{member.name}</h4>
-                                        <div className="h-0.5 w-10 bg-[#d0a237]/50 mx-auto my-3"></div>
-                                        <p className="text-xs text-slate-500 uppercase tracking-wide font-bold">{member.role}</p>
-                                    </div>
-                                ))}
-                            </div>
+
+                                        {/* KETUA DKM */}
+                                        {ketua && (
+                                            <div className="flex justify-center mb-12">
+                                                <div className="bg-[#29412d] p-8 rounded-[2rem] shadow-xl relative overflow-hidden group max-w-sm w-full transform hover:-translate-y-2 transition duration-500">
+                                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
+                                                    <div className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-[#d0a237] relative z-10 overflow-hidden shadow-lg bg-white">
+                                                        <img
+                                                            src={ketua.image || 'https://via.placeholder.com/150'}
+                                                            alt={ketua.name}
+                                                            className="w-full h-full object-cover hover:scale-110 transition duration-500"
+                                                            onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Foto"; }}
+                                                        />
+                                                    </div>
+                                                    <h4 className="font-serif font-bold text-xl text-amber-50 relative z-10">{ketua.name}</h4>
+                                                    <p className="text-[#d0a237] text-sm uppercase tracking-widest mt-2 relative z-10 font-bold">{ketua.role}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* GRID ANGGOTA */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                            {gridMembers.map((member, i) => (
+                                                <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg hover:shadow-2xl transition group hover:-translate-y-1">
+                                                    {member.image && (
+                                                        <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-2 border-slate-200 group-hover:border-[#d0a237] transition shadow-sm bg-slate-50">
+                                                            <img
+                                                                src={member.image}
+                                                                alt={member.name}
+                                                                className="w-full h-full object-cover hover:scale-110 transition duration-500"
+                                                                onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Foto"; e.target.className = "p-2 opacity-50" }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <h4 className="font-bold text-[#113642] font-serif text-lg">{member.name}</h4>
+                                                    <div className="h-0.5 w-10 bg-[#d0a237]/50 mx-auto my-3"></div>
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wide font-bold">{member.role}</p>
+                                                </div>
+                                            ))}
+                                            {gridMembers.length === 0 && !ketua && !penasihat && (
+                                                <div className="col-span-full py-10 text-slate-400 italic">
+                                                    Belum ada data pengurus. Silakan tambahkan dari Admin Panel.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     )}
                 </div>

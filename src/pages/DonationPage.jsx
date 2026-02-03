@@ -26,27 +26,61 @@ const DonationPage = ({ onDonate }) => {
         muamalat: { name: "Bank Muamalat", number: "1019876543", holder: "Masjid Roudhotul Jannah" }
     };
 
+    // --- LOGIC BARU: MENGUBAH TEKS BERDASARKAN KATEGORI ---
+    const getDynamicText = () => {
+        switch (category) {
+            case 'Zakat Maal':
+            case 'Zakat Fitrah': // Asumsi Zakat Fitrah ikut logika Zakat
+                return { 
+                    header: "Mari Berzakat", 
+                    label: "Data Muzzaki",
+                    submitBtn: "Konfirmasi Zakat"
+                };
+            case 'Sedekah':
+                return { 
+                    header: "Mari Bersedekah", 
+                    label: "Data Mussaddiq",
+                    submitBtn: "Konfirmasi Sedekah"
+                };
+            case 'Wakaf':
+                return { 
+                    header: "Mari Berwakaf", 
+                    label: "Data Wakif",
+                    submitBtn: "Konfirmasi Wakaf"
+                };
+            case 'Infaq':
+            default:
+                return { 
+                    header: "Mari Berinfaq", 
+                    label: "Data Munfiq", // Sesuai request (sebelumnya Data Muhsinin)
+                    submitBtn: "Konfirmasi Infaq"
+                };
+        }
+    };
+
+    const textUI = getDynamicText();
+    // -------------------------------------------------------
+
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // --- LOGIC BARU: UPLOAD & SUBMIT ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!proof) { alert("Mohon upload bukti pembayaran terlebih dahulu."); return; }
 
-        setIsUploading(true); // Mulai Loading
+        setIsUploading(true);
 
         try {
             // 1. Upload Gambar ke Supabase Storage
             const fileExt = proof.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`; // Nama file unik berdasarkan waktu
+            const fileName = `${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
-                .from('donation-proofs') // Pastikan Bucket 'donation-proofs' sudah dibuat di Supabase
+                .from('donation-proofs')
                 .upload(filePath, proof);
 
             if (uploadError) throw uploadError;
@@ -61,17 +95,17 @@ const DonationPage = ({ onDonate }) => {
             // 3. Siapkan Data untuk Database
             const newDonation = {
                 name,
-                phone,       // Kolom phone
-                email,       // Kolom email
+                phone,
+                email,
                 amount: parseFloat(amount),
                 type: category,
-                method,      // Kolom method (QRIS/Transfer)
-                message,     // Kolom message
-                proof_url: publicUrl, // PENTING: Link gambar bukti
+                method,
+                message,
+                proof_url: publicUrl,
                 status: 'pending'
             };
 
-            // 4. Kirim data ke function parent (untuk di-insert ke DB)
+            // 4. Kirim data ke function parent
             await onDonate(newDonation);
 
             setSubmitted(true);
@@ -80,7 +114,7 @@ const DonationPage = ({ onDonate }) => {
             console.error('Error saat upload:', error);
             alert('Gagal mengirim donasi: ' + error.message);
         } finally {
-            setIsUploading(false); // Selesai Loading
+            setIsUploading(false);
         }
     };
 
@@ -88,7 +122,10 @@ const DonationPage = ({ onDonate }) => {
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16 relative">
-                    <h2 className="text-4xl md:text-5xl font-bold text-[#022c22] font-serif mb-4">Mari Berinfaq</h2>
+                    {/* LOGIC UPDATE 1: JUDUL HEADER BERUBAH */}
+                    <h2 className="text-4xl md:text-5xl font-bold text-[#022c22] font-serif mb-4">
+                        {textUI.header}
+                    </h2>
                     <p className="text-[#064e3b]/70 text-lg font-serif italic max-w-2xl mx-auto">"Naungan orang beriman di hari Kiamat adalah sedekahnya." (HR. Ahmad)</p>
                 </div>
 
@@ -123,7 +160,11 @@ const DonationPage = ({ onDonate }) => {
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-8">
                                     <div className="bg-amber-50/50 p-6 md:p-8 rounded-3xl space-y-6 border border-amber-100/50">
-                                        <h3 className="font-serif font-bold text-[#022c22] text-xl flex items-center gap-3 border-b border-amber-200 pb-4"><User className="text-amber-600" /> Data Muhsinin</h3>
+                                        {/* LOGIC UPDATE 2: LABEL DATA DIRI BERUBAH */}
+                                        <h3 className="font-serif font-bold text-[#022c22] text-xl flex items-center gap-3 border-b border-amber-200 pb-4">
+                                            <User className="text-amber-600" /> {textUI.label}
+                                        </h3>
+                                        
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full p-4 border border-amber-200 bg-white rounded-xl outline-none focus:ring-2 focus:ring-[#064e3b] transition" placeholder="Nama Lengkap" />
                                             <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-4 border border-amber-200 bg-white rounded-xl outline-none focus:ring-2 focus:ring-[#064e3b] transition" placeholder="No. WhatsApp" />
@@ -133,6 +174,7 @@ const DonationPage = ({ onDonate }) => {
                                     <div className="space-y-6">
                                         <label className="block font-serif font-bold text-xl text-[#022c22]">Niat & Nominal</label>
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                            {/* Button Kategori yang memicu perubahan state 'category' */}
                                             {['Zakat Maal', 'Zakat Fitrah', 'Infaq', 'Sedekah', 'Wakaf'].map((cat) => (
                                                 <button key={cat} type="button" onClick={() => setCategory(cat)} className={`w-full px-2 py-3 rounded-xl text-sm font-bold border-2 transition-all ${category === cat ? 'bg-[#022c22] text-amber-400 border-[#022c22]' : 'bg-white text-slate-500 border-slate-100 hover:border-amber-400 hover:text-amber-700'}`}>
                                                     {cat}
@@ -202,7 +244,8 @@ const DonationPage = ({ onDonate }) => {
                                         disabled={isUploading}
                                         className="w-full bg-gradient-to-r from-[#022c22] to-[#064e3b] text-amber-100 py-5 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-[#064e3b]/40 transition transform hover:-translate-y-1 font-serif tracking-widest uppercase disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        {isUploading ? 'Sedang Mengirim...' : 'Konfirmasi Infaq'}
+                                        {/* LOGIC UPDATE 3: TOMBOL SUBMIT SESUAI KATEGORI */}
+                                        {isUploading ? 'Sedang Mengirim...' : textUI.submitBtn}
                                     </button>
                                 </form>
                             )}

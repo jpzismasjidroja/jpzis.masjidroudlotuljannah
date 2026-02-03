@@ -55,6 +55,16 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
     const [newAdminPassword, setNewAdminPassword] = useState('');
     const [adminLoading, setAdminLoading] = useState(false);
 
+    // Pengurus Management State
+    const [pengurusList, setPengurusList] = useState([]);
+    const [pengurusLoading, setPengurusLoading] = useState(false);
+    const [pengurusName, setPengurusName] = useState('');
+    const [pengurusRole, setPengurusRole] = useState('');
+    const [pengurusImageFile, setPengurusImageFile] = useState(null);
+    const [pengurusPreviewImage, setPengurusPreviewImage] = useState(null);
+    const [isPengurusEditing, setIsPengurusEditing] = useState(false);
+    const [selectedPengurus, setSelectedPengurus] = useState(null);
+
     // --- CHECK ROLE ON LOAD ---
     useEffect(() => {
         const checkRole = async () => {
@@ -103,9 +113,21 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         setAdminLoading(false);
     };
 
+    // Fetch Pengurus List
+    const fetchPengurus = async () => {
+        setPengurusLoading(true);
+        const { data, error } = await supabase
+            .from('pengurus')
+            .select('*')
+            .order('order', { ascending: true }); // Assume 'order' column exists or sort by name
+        if (!error) setPengurusList(data || []);
+        setPengurusLoading(false);
+    };
+
     // Initial Fetch (Gallery & Admins if Superadmin)
     useEffect(() => {
         if (activeTab === 'gallery') fetchGallery();
+        if (activeTab === 'pengurus') fetchPengurus();
         if (activeTab === 'admins' && isSuperAdmin) fetchAdmins();
     }, [activeTab, isSuperAdmin]);
 
@@ -493,6 +515,97 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         }
     };
 
+    // --- PENGURUS MANAGEMENT HANDLERS ---
+    const resetPengurusForm = () => {
+        setPengurusName('');
+        setPengurusRole('');
+        setPengurusImageFile(null);
+        setPengurusPreviewImage(null);
+        setIsPengurusEditing(false);
+        setSelectedPengurus(null);
+    };
+
+    const handleEditPengurus = (p) => {
+        setIsPengurusEditing(true);
+        setSelectedPengurus(p);
+        setPengurusName(p.name);
+        setPengurusRole(p.role);
+        setPengurusPreviewImage(p.image_url);
+    };
+
+    const handleDeletePengurus = async (id, imageUrl) => {
+        if (!confirm('Yakin ingin menghapus pengurus ini?')) return;
+        try {
+            const { error } = await supabase.from('pengurus').delete().eq('id', id);
+            if (error) throw error;
+
+            // Optional: delete image from storage
+            if (imageUrl) {
+                const fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                if (fileName) await supabase.storage.from('pengurus-images').remove([fileName]);
+            }
+
+            fetchPengurus();
+        } catch (error) {
+            alert('Gagal menghapus: ' + error.message);
+        }
+    };
+
+    const handlePengurusSubmit = async (e) => {
+        e.preventDefault();
+        setPengurusLoading(true);
+
+        try {
+            let imageUrl = pengurusPreviewImage;
+
+            if (pengurusImageFile) {
+                // Compress Image
+                const compressedFile = await compressImage(pengurusImageFile);
+
+                // Upload
+                const fileName = `${Date.now()}-${pengurusName.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
+                const { error: uploadError } = await supabase.storage
+                    .from('pengurus-images')
+                    .upload(fileName, compressedFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabase.storage
+                    .from('pengurus-images')
+                    .getPublicUrl(fileName);
+                imageUrl = urlData.publicUrl;
+            }
+
+            const data = {
+                name: pengurusName,
+                role: pengurusRole,
+                image_url: imageUrl,
+            };
+
+            if (isPengurusEditing && selectedPengurus) {
+                const { error } = await supabase
+                    .from('pengurus')
+                    .update(data)
+                    .eq('id', selectedPengurus.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('pengurus')
+                    .insert([data]);
+                if (error) throw error;
+            }
+
+            fetchPengurus();
+            resetPengurusForm();
+            alert(isPengurusEditing ? 'Data pengurus diperbarui!' : 'Pengurus ditambahkan!');
+
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            setPengurusLoading(false);
+        }
+    };
+
     // Calculate Totals
     const totalDonation = donations.reduce((sum, item) => sum + item.amount, 0);
     const verifiedDonation = donations.filter(d => d.status === 'verified').reduce((sum, item) => sum + item.amount, 0);
@@ -524,6 +637,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                     <button onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'content' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><FileText size={20} /> Manajemen Artikel</button>
                     <button onClick={() => { setActiveTab('gallery'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'gallery' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><ImageIcon size={20} /> Galeri Foto</button>
                     <button onClick={() => { setActiveTab('donations'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'donations' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><Wallet size={20} /> Data Donasi</button>
+                    <button onClick={() => { setActiveTab('pengurus'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'pengurus' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><Users size={20} /> Pengurus</button>
 
                     {isSuperAdmin && (
                         <button onClick={() => { setActiveTab('admins'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'admins' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}>
@@ -791,6 +905,71 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* --- TAB PENGURUS --- */}
+                {activeTab === 'pengurus' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <h2 className="text-xl font-bold text-[#022c22]">Manajemen Pengurus Masjid</h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <h3 className="font-bold mb-6 text-lg border-b pb-2">{isPengurusEditing ? 'Edit Pengurus' : 'Tambah Pengurus'}</h3>
+                                <form onSubmit={handlePengurusSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Nama Lengkap</label>
+                                        <input type="text" value={pengurusName} onChange={(e) => setPengurusName(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#d0a237]" placeholder="Contoh: H. Ahmad" required />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Jabatan</label>
+                                        <input type="text" value={pengurusRole} onChange={(e) => setPengurusRole(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#d0a237]" placeholder="Contoh: Ketua DKM / Penasihat / Sekretaris" required />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Foto Profil (WebP)</label>
+                                        <div className="relative border-2 border-dashed border-slate-300 rounded-xl p-4 hover:bg-slate-50 transition text-center cursor-pointer">
+                                            <input type="file" onChange={(e) => { setPengurusImageFile(e.target.files[0]); setPengurusPreviewImage(URL.createObjectURL(e.target.files[0])); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                            {pengurusPreviewImage ? (
+                                                <div className="relative h-40 rounded-lg overflow-hidden w-full"><img src={pengurusPreviewImage} alt="Preview" className="w-full h-full object-cover" /></div>
+                                            ) : (
+                                                <div className="py-8 text-slate-500"><Camera size={24} className="mx-auto mb-2" /><span>Upload Foto</span></div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {isPengurusEditing && <button type="button" onClick={resetPengurusForm} className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">Batal</button>}
+                                        <button type="submit" disabled={pengurusLoading} className="flex-1 px-4 py-2 bg-[#d0a237] text-[#022c22] rounded-lg font-bold hover:bg-[#b48624] transition shadow-lg flex items-center justify-center gap-2">
+                                            {pengurusLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                                            {isPengurusEditing ? 'Simpan' : 'Tambah'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div className="lg:col-span-2 space-y-4">
+                                <h3 className="font-bold text-slate-700 mb-2">Daftar Pengurus</h3>
+                                {pengurusList.length === 0 && <p className="text-slate-500 italic">Belum ada data pengurus.</p>}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {pengurusList.map((p) => (
+                                        <div key={p.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full bg-slate-100 overflow-hidden flex-shrink-0">
+                                                <img src={p.image_url || 'https://via.placeholder.com/150'} alt={p.name} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-[#022c22]">{p.name}</h4>
+                                                <p className="text-sm text-[#d0a237] font-bold">{p.role}</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => handleEditPengurus(p)} className="p-2 bg-slate-50 text-blue-600 rounded-lg hover:bg-blue-50"><Edit size={16} /></button>
+                                                <button onClick={() => handleDeletePengurus(p.id, p.image_url)} className="p-2 bg-slate-50 text-red-600 rounded-lg hover:bg-red-50"><Trash2 size={16} /></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
