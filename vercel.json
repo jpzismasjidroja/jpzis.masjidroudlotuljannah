@@ -19,4 +19,11 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/admin",
+      "permanent": true
+    }
+  ]
 }
