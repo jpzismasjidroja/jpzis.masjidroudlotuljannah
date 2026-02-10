@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Award, History, BookOpen, Users, Star, Leaf } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import useSEO from '../hooks/useSEO';
 
 const ProfilePage = () => {
+    // SEO Meta Tags
+    // SEO Meta Tags
+    useSEO({
+        title: 'Profil Masjid',
+        description: 'Profil, visi misi, sejarah, dan struktur pengurus Masjid Jami\' Roudlatul Jannah. Pusat pemberdayaan dakwah Islam.',
+        url: '/profile',
+        keywords: 'profil masjid, visi misi, sejarah masjid, pengurus masjid, roudlatul jannah'
+    });
+
     const [activeTab, setActiveTab] = useState('visi_misi');
     const [staffMembers, setStaffMembers] = useState([]);
 
@@ -47,20 +57,25 @@ const ProfilePage = () => {
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold text-[#29412d] font-serif">Profil Masjid</h2>
+                    <h1 className="text-4xl font-bold text-[#29412d] font-serif">Profil Masjid</h1>
                     <p className="text-[#d0a237] italic mt-2 font-serif">"Pusat Pemberdayaan Dakwah Islam"</p>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-12">
+                {/* Tab Navigation - Mobile Grid (2 Cols), Desktop Centered */}
+                <div className="grid grid-cols-2 md:flex md:flex-wrap md:justify-center gap-3 md:gap-4 mb-8 md:mb-12">
                     {[
                         { id: 'visi_misi', label: 'Visi & Misi', icon: <Award size={18} /> },
                         { id: 'sejarah', label: 'Sejarah', icon: <History size={18} /> },
                         { id: 'peran', label: 'Peran & Fungsi', icon: <BookOpen size={18} /> },
                         { id: 'struktur', label: 'Pengurus', icon: <Users size={18} /> },
                     ].map((tab) => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-6 py-3 rounded-full font-serif font-bold text-sm transition-all duration-300 border ${activeTab === tab.id ? 'bg-[#29412d] text-[#d0a237] border-[#29412d] shadow-lg transform scale-105' : 'bg-white text-slate-500 border-amber-200 hover:border-[#113642] hover:bg-slate-50'}`}>
-                            {tab.icon} {tab.label}
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex flex-col md:flex-row items-center justify-center gap-2 px-4 py-4 md:px-6 md:py-3 rounded-2xl md:rounded-full font-serif font-bold text-sm transition-all duration-300 border h-full ${activeTab === tab.id ? 'bg-[#29412d] text-[#d0a237] border-[#29412d] shadow-lg scale-100 md:transform md:scale-105' : 'bg-white text-slate-500 border-amber-100 hover:border-[#113642] hover:bg-slate-50'}`}
+                        >
+                            <div className={`${activeTab === tab.id ? 'text-[#d0a237]' : 'text-[#d0a237]'}`}>{tab.icon}</div>
+                            <span className="text-center">{tab.label}</span>
                         </button>
                     ))}
                 </div>

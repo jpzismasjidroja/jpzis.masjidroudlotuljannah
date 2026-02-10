@@ -65,6 +65,15 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
     const [isPengurusEditing, setIsPengurusEditing] = useState(false);
     const [selectedPengurus, setSelectedPengurus] = useState(null);
 
+    // Stats Management State
+    const [statsList, setStatsList] = useState([]);
+    const [statsLoading, setStatsLoading] = useState(false);
+    const [statLabel, setStatLabel] = useState('');
+    const [statCount, setStatCount] = useState('');
+    const [statColor, setStatColor] = useState('bg-blue-500');
+    const [isStatEditing, setIsStatEditing] = useState(false);
+    const [selectedStat, setSelectedStat] = useState(null);
+
     // --- CHECK ROLE ON LOAD ---
     useEffect(() => {
         const checkRole = async () => {
@@ -124,10 +133,22 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         setPengurusLoading(false);
     };
 
+    // Fetch Stats List
+    const fetchStats = async () => {
+        setStatsLoading(true);
+        const { data, error } = await supabase
+            .from('beneficiaries')
+            .select('*')
+            .order('created_at', { ascending: true });
+        if (!error) setStatsList(data || []);
+        setStatsLoading(false);
+    };
+
     // Initial Fetch (Gallery & Admins if Superadmin)
     useEffect(() => {
         if (activeTab === 'gallery') fetchGallery();
         if (activeTab === 'pengurus') fetchPengurus();
+        if (activeTab === 'stats') fetchStats();
         if (activeTab === 'admins' && isSuperAdmin) fetchAdmins();
     }, [activeTab, isSuperAdmin]);
 
@@ -203,14 +224,34 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         setActiveTab('content');
     };
 
-    const handleDeleteArticle = async (id) => {
-        if (!confirm('Yakin ingin menghapus artikel ini?')) return;
+    const handleDeleteArticle = async (article) => {
+        if (!confirm(`Yakin ingin menghapus artikel "${article.title}"?`)) return;
+        setLoading(true);
         try {
-            const { error } = await supabase.from('articles').delete().eq('id', id);
+            // 1. Delete Image from Storage if exists
+            if (article.image) {
+                try {
+                    const fileName = article.image.substring(article.image.lastIndexOf('/') + 1);
+                    if (fileName) {
+                        const { error: storageError } = await supabase.storage.from('article-images').remove([fileName]);
+                        if (storageError) console.warn('Gagal menghapus gambar:', storageError);
+                    }
+                } catch (err) {
+                    console.warn('Error parsing image URL:', err);
+                }
+            }
+
+            // 2. Delete Article from DB
+            const { error } = await supabase.from('articles').delete().eq('id', article.id);
             if (error) throw error;
+
             fetchArticles();
+            if (selectedArticle?.id === article.id) resetForm();
+            alert('Artikel berhasil dihapus.');
         } catch (error) {
             alert('Gagal menghapus: ' + error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -443,8 +484,10 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         e.preventDefault();
         if (!isSuperAdmin) return;
 
-        if (newAdminPassword.length < 6) {
-            alert('Password minimal 6 karakter');
+        // Password Policy yang lebih kuat
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(newAdminPassword)) {
+            alert('Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, dan angka');
             return;
         }
 
@@ -453,10 +496,9 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             // STRATEGY: Create a SECOND, temporary Supabase client that DOES NOT persist the session.
             // This allows us to "Sign Up" the new user without logging out the current Superadmin.
 
-            // Hardcode credentials from supabaseClient.js (since they are visible there) OR better, use the env vars if available.
-            // Since we saw the file content, we can re-use the values.
-            const supabaseUrl = 'https://wphiberzrkkcqibwmamo.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwaGliZXJ6cmtrY3FpYndtYW1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzY1OTEsImV4cCI6MjA4MzgxMjU5MX0.dxWI4wBPCsASOYzvLczgvMwn95BcB9cqSH0fbup_4d0';
+            // Mengambil credentials dari environment variables (aman)
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
             const tempClient = createClient(supabaseUrl, supabaseKey, {
                 auth: {
@@ -488,7 +530,8 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 }
             }
 
-            alert(`Sukses! Admin baru dibuat.\nEmail: ${newAdminEmail}\nPassword: ${newAdminPassword}`);
+            // SECURITY: Tidak menampilkan password di alert
+            alert(`Sukses! Admin baru dibuat dengan email: ${newAdminEmail}\n\nCatatan: Simpan password dengan aman dan segera minta admin baru untuk mengganti password.`);
             setNewAdminEmail('');
             setNewAdminPassword('');
             fetchAdmins();
@@ -606,6 +649,68 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         }
     };
 
+    // --- STATS MANAGEMENT HANDLERS ---
+    const resetStatForm = () => {
+        setStatLabel('');
+        setStatCount('');
+        setStatColor('bg-blue-500');
+        setIsStatEditing(false);
+        setSelectedStat(null);
+    };
+
+    const handleEditStat = (s) => {
+        setIsStatEditing(true);
+        setSelectedStat(s);
+        setStatLabel(s.label);
+        setStatCount(s.count);
+        setStatColor(s.color);
+    };
+
+    const handleDeleteStat = async (id) => {
+        if (!confirm('Hapus statistik ini?')) return;
+        try {
+            const { error } = await supabase.from('beneficiaries').delete().eq('id', id);
+            if (error) throw error;
+            fetchStats();
+        } catch (error) {
+            alert('Gagal menghapus: ' + error.message);
+        }
+    };
+
+    const handleStatSubmit = async (e) => {
+        e.preventDefault();
+        setStatsLoading(true);
+
+        try {
+            const data = {
+                label: statLabel,
+                count: statCount,
+                color: statColor
+            };
+
+            if (isStatEditing && selectedStat) {
+                const { error } = await supabase
+                    .from('beneficiaries')
+                    .update(data)
+                    .eq('id', selectedStat.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('beneficiaries')
+                    .insert([data]);
+                if (error) throw error;
+            }
+
+            fetchStats();
+            resetStatForm();
+            alert(isStatEditing ? 'Data statistik diperbarui!' : 'Statistik ditambahkan!');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            setStatsLoading(false);
+        }
+    };
+
     // Calculate Totals
     const totalDonation = donations.reduce((sum, item) => sum + item.amount, 0);
     const verifiedDonation = donations.filter(d => d.status === 'verified').reduce((sum, item) => sum + item.amount, 0);
@@ -638,6 +743,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                     <button onClick={() => { setActiveTab('gallery'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'gallery' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><ImageIcon size={20} /> Galeri Foto</button>
                     <button onClick={() => { setActiveTab('donations'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'donations' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><Wallet size={20} /> Data Donasi</button>
                     <button onClick={() => { setActiveTab('pengurus'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'pengurus' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><Users size={20} /> Pengurus</button>
+                    <button onClick={() => { setActiveTab('stats'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'stats' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><TrendingUp size={20} /> Statistik</button>
 
                     {isSuperAdmin && (
                         <button onClick={() => { setActiveTab('admins'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'admins' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}>
@@ -706,11 +812,11 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 w-full overflow-hidden">
                                 <h3 className="font-bold text-[#022c22] mb-6">Analitik Donasi</h3>
-                                <div className="h-64 md:h-80 w-full" style={{ minHeight: '300px' }}><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" interval={0} fontSize={12} tick={{ dy: 5 }} /><YAxis fontSize={12} /><Tooltip /><Bar dataKey="value" fill="#d0a237" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div>
+                                <div className="h-64 md:h-80 w-full" style={{ minHeight: '300px' }}><ResponsiveContainer width="100%" height="100%" minWidth={0}><BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" interval={0} fontSize={12} tick={{ dy: 5 }} /><YAxis fontSize={12} /><Tooltip /><Bar dataKey="value" fill="#d0a237" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div>
                             </div>
                             <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 w-full overflow-hidden">
                                 <h3 className="font-bold text-[#022c22] mb-6">Sebaran Tipe</h3>
-                                <div className="h-64 md:h-80 w-full" style={{ minHeight: '300px' }}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{chartData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />))}</Pie><Tooltip /><Legend /></PieChart></ResponsiveContainer></div>
+                                <div className="h-64 md:h-80 w-full" style={{ minHeight: '300px' }}><ResponsiveContainer width="100%" height="100%" minWidth={0}><PieChart><Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{chartData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />))}</Pie><Tooltip /><Legend /></PieChart></ResponsiveContainer></div>
                             </div>
                         </div>
                     </div>
@@ -784,7 +890,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                                             {article.status || 'Draft'}
                                         </div>
 
-                                        <div className="h-32 rounded-lg bg-slate-100 mb-3 overflow-hidden relative"><img src={article.image} alt={article.title} className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2"><button onClick={() => handleEditArticle(article)} className="p-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50"><Edit size={16} /></button><button onClick={() => handleDeleteArticle(article.id)} className="p-2 bg-white text-red-600 rounded-lg hover:bg-red-50"><Trash2 size={16} /></button></div></div>
+                                        <div className="h-32 rounded-lg bg-slate-100 mb-3 overflow-hidden relative"><img src={article.image} alt={article.title} className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2"><button onClick={() => handleEditArticle(article)} className="p-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50"><Edit size={16} /></button><button onClick={() => handleDeleteArticle(article)} className="p-2 bg-white text-red-600 rounded-lg hover:bg-red-50"><Trash2 size={16} /></button></div></div>
                                         <span className="text-xs font-bold text-[#d0a237] uppercase tracking-wider">{article.category}</span>
                                         <h4 className="font-bold text-[#022c22] leading-tight mt-1 mb-2 line-clamp-2">{article.title}</h4>
                                         <p className="text-xs text-slate-400">{new Date(article.date).toLocaleDateString()}</p>
@@ -1058,6 +1164,70 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* --- TAB STATS --- */}
+                {activeTab === 'stats' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-[#022c22]">Manajemen Statistik (Penerima Manfaat)</h2>
+                            <button onClick={resetStatForm} className="bg-[#022c22] text-amber-100 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-[#064e3b]"><Plus size={18} /> Tambah Data</button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Form */}
+                            <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit">
+                                <h3 className="font-bold mb-6 text-lg border-b pb-2">{isStatEditing ? 'Edit Data' : 'Tambah Data Baru'}</h3>
+                                <form onSubmit={handleStatSubmit} className="space-y-4">
+                                    <div><label className="block text-sm font-bold text-slate-700 mb-2">Label</label><input type="text" value={statLabel} onChange={(e) => setStatLabel(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#d0a237]" placeholder="Contoh: Yatim & Dhuafa" required /></div>
+                                    <div><label className="block text-sm font-bold text-slate-700 mb-2">Jumlah (Count)</label><input type="text" value={statCount} onChange={(e) => setStatCount(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#d0a237]" placeholder="Contoh: 150+" required /></div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Warna Indikator</label>
+                                        <select value={statColor} onChange={(e) => setStatColor(e.target.value)} className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-[#d0a237]">
+                                            <option value="bg-blue-500">Biru</option>
+                                            <option value="bg-green-500">Hijau</option>
+                                            <option value="bg-orange-500">Oranye</option>
+                                            <option value="bg-red-500">Merah</option>
+                                            <option value="bg-purple-500">Ungu</option>
+                                            <option value="bg-teal-500">Teal</option>
+                                        </select>
+                                        <div className={`mt-2 h-4 w-full rounded ${statColor}`}></div>
+                                    </div>
+
+                                    <div className="flex gap-2 pt-4">
+                                        {isStatEditing && <button type="button" onClick={resetStatForm} className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">Batal</button>}
+                                        <button type="submit" disabled={statsLoading} className="flex-1 px-4 py-2 bg-[#d0a237] text-[#022c22] rounded-lg font-bold hover:bg-[#b48624]">
+                                            {statsLoading ? '...' : (isStatEditing ? 'Simpan' : 'Tambah')}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            {/* List */}
+                            <div className="lg:col-span-2 space-y-4">
+                                {statsList.length === 0 ? (
+                                    <p className="text-center text-slate-400 py-12 bg-white rounded-2xl border border-dashed border-slate-200">Belum ada data statistik.</p>
+                                ) : (
+                                    statsList.map((stat) => (
+                                        <div key={stat.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between group hover:border-[#d0a237] transition">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-full ${stat.color} flex items-center justify-center text-white font-bold opacity-80`}>
+                                                    {stat.count.replace(/\D/g, '').slice(0, 2)}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-[#022c22]">{stat.label}</h4>
+                                                    <p className="text-[#d0a237] font-bold text-xl">{stat.count}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                                                <button onClick={() => handleEditStat(stat)} className="p-2 bg-slate-50 text-blue-600 rounded-lg hover:bg-blue-50"><Edit size={16} /></button>
+                                                <button onClick={() => handleDeleteStat(stat.id)} className="p-2 bg-slate-50 text-red-600 rounded-lg hover:bg-red-50"><Trash2 size={16} /></button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>

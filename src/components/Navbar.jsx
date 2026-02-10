@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogIn } from 'lucide-react';
 
 const Navbar = ({ user, showAdminLink = true }) => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
+    const menuRef = useRef(null);
 
     // Helper to determine active state
     // Simple check: if pathname is '/' then 'home', else match the path
@@ -14,11 +15,34 @@ const Navbar = ({ user, showAdminLink = true }) => {
         return false;
     };
 
+    // Close menu on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        const handleScroll = () => {
+            if (isOpen) setIsOpen(false);
+        };
+
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+            window.addEventListener("scroll", handleScroll);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, [isOpen]);
+
     const navItems = [
         { path: '/', label: 'Beranda' },
         { path: '/profile', label: 'Profil' },
         { path: '/gallery', label: 'Galeri' },
-        { path: '/donate', label: 'Infaq' },
+        { path: '/donate', label: 'Zakat' },
         { path: '/transparency', label: 'Transparansi' },
         { path: '/articles', label: 'Artikel' },
         { path: '/contact', label: 'Hubungi' },
@@ -39,7 +63,7 @@ const Navbar = ({ user, showAdminLink = true }) => {
                         <div className="transition-transform transform group-hover:scale-105 duration-300">
                             <img
                                 src="/header-logo.webp"
-                                alt="JPZIS Masjid Jami' Raudlatul Jannah"
+                                alt="JPZIS Masjid Jami' Roudlatul Jannah"
                                 className="h-12 md:h-16 w-auto object-contain"
                             />
                         </div>
@@ -81,7 +105,7 @@ const Navbar = ({ user, showAdminLink = true }) => {
                 </div>
             </div>
             {isOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-[#29412d] border-t border-[#d0a237]/30 shadow-2xl animate-in slide-in-from-top-5">
+                <div ref={menuRef} className="md:hidden absolute top-full left-0 w-full bg-[#29412d] border-t border-[#d0a237]/30 shadow-2xl animate-in slide-in-from-top-5">
                     <div className="p-4 space-y-2">
                         {navItems.map((item) => (
                             <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className={`block w-full text-center px-4 py-4 rounded-xl text-lg font-serif ${isActive(item.path) ? 'bg-[#d0a237]/10 text-[#d0a237] border border-[#d0a237]/20' : 'text-amber-100/60'}`}>

@@ -18,6 +18,7 @@ import GalleryPage from './pages/GalleryPage';
 import ContactPage from './pages/ContactPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import NotFoundPage from './pages/NotFoundPage';
 
 const GlobalBackground = () => (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#FFFCF5]">
@@ -163,8 +164,8 @@ function App() {
                     </>
                 )}
 
-                {/* Fallback 404 - Redirect to Home */}
-                <Route path="*" element={<Navigate to="/" />} />
+                {/* Fallback 404 - Show NotFoundPage */}
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
 
             {!isAdminRoute && <Footer />}

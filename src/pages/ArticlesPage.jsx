@@ -1,7 +1,16 @@
 import React from 'react';
 import ArticleCard from '../components/ArticleCard';
+import useSEO from '../hooks/useSEO';
 
 const ArticlesPage = ({ articles }) => {
+    // SEO Meta Tags
+    useSEO({
+        title: 'Kabar & Kajian',
+        description: 'Kumpulan artikel kajian keislaman dan berita terbaru dari Masjid Jami\' Roudlatul Jannah.',
+        url: '/articles',
+        keywords: 'artikel islam, kajian, berita masjid, dakwah, kajian keislaman'
+    });
+
     // Filter only published articles for the public view
     // Note: If no status field exists (legacy data), consider it published or handle accordingly.
     // Here we strictly filter 'published'. You might want to allow null for legacy compatibility.

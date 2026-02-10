@@ -1,7 +1,16 @@
 import React from 'react';
 import { MapPin, Phone, Mail, Send } from 'lucide-react';
+import useSEO from '../hooks/useSEO';
 
 const ContactPage = () => {
+    // SEO Meta Tags
+    useSEO({
+        title: 'Hubungi Kami',
+        description: 'Hubungi Masjid Jami\' Roudlatul Jannah. Alamat, telepon, email, dan lokasi maps tersedia.',
+        url: '/contact',
+        keywords: 'kontak masjid, alamat masjid, hubungi kami, lokasi masjid roudlatul jannah'
+    });
+
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,7 +37,7 @@ const ContactPage = () => {
                                 <Mail className="text-amber-400 shrink-0" size={24} />
                                 <div>
                                     <h4 className="font-bold text-lg mb-1">Email</h4>
-                                    <p className="text-amber-100/70">sekretariat@roudhotuljannah.id</p>
+                                    <p className="text-amber-100/70">jpzis.masjidroja@gmail.com</p>
                                 </div>
                             </div>
                         </div>

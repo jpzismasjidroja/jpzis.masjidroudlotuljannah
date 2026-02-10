@@ -23,7 +23,7 @@ const Footer = () => (
                         <div className="transition-transform transform group-hover:scale-105 duration-300">
                             <img
                                 src="/header-logo.webp"
-                                alt="JPZIS Masjid Jami' Raudlatul Jannah"
+                                alt="JPZIS Masjid Jami' Roudlatul Jannah"
                                 className="h-12 md:h-16 w-auto object-contain"
                             />
                         </div>
@@ -59,18 +59,22 @@ const Footer = () => (
                         </li>
                         <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                             <Phone size={18} className="text-[#d0a237] shrink-0" />
-                            <span>+62 812-3456-7890</span>
+                            <span>+62 852-3448-5899</span>
+                        </li>
+                        <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
+                            <Phone size={18} className="text-[#d0a237] shrink-0" />
+                            <span>+62 852-3334-1999</span>
                         </li>
                         <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                             <Mail size={18} className="text-[#d0a237] shrink-0" />
-                            <span>sekretariat@roudhotuljannah.id</span>
+                            <span>jpzis.masjidroja@gmail.com</span>
                         </li>
                     </ul>
                 </div>
 
             </div>
             <div className="border-t border-white/10 pt-8 text-center text-sm font-sans text-amber-50/80">
-                © 2026 JPZIS Masjid Jami' Raudlatul Jannah. All Rights Reserved. <br />
+                © 2026 JPZIS Masjid Jami' Roudlatul Jannah. All Rights Reserved. <br />
             </div>
         </div>
     </footer>

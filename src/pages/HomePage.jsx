@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Star, Heart, ArrowRight, FileText, Wallet, CheckCircle, TrendingUp, Users, Image as ImageIcon } from 'lucide-react';
 import { formatRupiah } from '../utils';
 import ArticleCard from '../components/ArticleCard';
+import useSEO from '../hooks/useSEO';
+import { supabase } from '../supabaseClient';
 
 const QuoteIcon = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -11,10 +13,43 @@ const QuoteIcon = ({ className }) => (
 );
 
 const HomePage = ({ articles, donations }) => {
+    // SEO Meta Tags
+    // SEO Meta Tags
+    useSEO({
+        title: 'Beranda',
+        description: 'Website resmi LAZIS Masjid Jami\' Roudlatul Jannah. Salurkan zakat, infaq, dan sedekah Anda dengan mudah dan transparan.',
+        url: '/',
+        keywords: 'masjid, roudlatul jannah, lazis, zakat, infaq, sedekah, donasi online'
+    });
+
     const navigate = useNavigate();
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
     const [visible, setVisible] = useState(true);
+
+    // FETCH BENEFICIARIES STATS
+    const [statsList, setStatsList] = useState([]);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            const { data } = await supabase
+                .from('beneficiaries')
+                .select('*')
+                .order('created_at', { ascending: true });
+            if (data) setStatsList(data);
+        };
+        fetchStats();
+
+        // Optional: Realtime subscription for stats update without refresh
+        const statsSub = supabase
+            .channel('public:beneficiaries')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'beneficiaries' }, fetchStats)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(statsSub);
+        };
+    }, []);
 
     const quotesData = [
         { text: "Hanyalah yang memakmurkan masjid-masjid Allah ialah orang-orang yang beriman kepada Allah dan hari kemudian...", source: "(QS. At-Taubah: 18)" },
@@ -60,7 +95,7 @@ const HomePage = ({ articles, donations }) => {
                     </div>
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-amber-50 tracking-tight leading-none mb-8 drop-shadow-2xl animate-in slide-in-from-bottom-8 fade-in duration-1000 delay-100">
                         Lazis <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a0781e] via-yellow-200 to-[#a0781e] italic">Masjid</span><br />
-                        Raudlatul <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a0781e] via-yellow-200 to-[#a0781e] italic">Jannah</span>
+                        Roudlatul <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a0781e] via-yellow-200 to-[#a0781e] italic">Jannah</span>
                     </h1>
 
                     {/* QUOTES HERO */}
@@ -75,7 +110,7 @@ const HomePage = ({ articles, donations }) => {
 
                     <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in slide-in-from-bottom-16 fade-in duration-1000 delay-300">
                         <Link to="/donate" className="group relative bg-gradient-to-b from-[#d0a237] to-[#b48624] text-[#29412d] px-10 py-4 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(208,162,55,0.5)] transition-all transform hover:-translate-y-1 overflow-hidden">
-                            <span className="relative z-10 flex items-center justify-center gap-3 font-serif tracking-wider"><Heart fill="currentColor" size={20} /> Salurkan Infaq</span>
+                            <span className="relative z-10 flex items-center justify-center gap-3 font-serif tracking-wider"><Heart fill="currentColor" size={20} /> Salurkan Zakat</span>
                             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                         </Link>
                         <Link to="/profile" className="group bg-transparent border border-[#d0a237]/50 text-[#d0a237] px-10 py-4 rounded-full font-serif tracking-wider text-lg transition-all hover:bg-[#d0a237]/10 hover:border-[#d0a237]">Tentang Kami</Link>
@@ -91,7 +126,7 @@ const HomePage = ({ articles, donations }) => {
                     <Link to="/donate" className="bg-[#FFFCF5] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-bl-[100px] -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition"></div>
                         <div className="bg-[#29412d] w-14 h-14 rounded-full flex items-center justify-center text-[#d0a237] mb-6 shadow-lg group-hover:bg-[#d0a237] group-hover:text-[#29412d] transition"><Heart size={24} /></div>
-                        <h3 className="text-2xl font-bold text-[#29412d] mb-2 font-serif">Infaq & Sedekah</h3>
+                        <h3 className="text-2xl font-bold text-[#29412d] mb-2 font-serif">Zakat, Infaq, & Sedekah</h3>
                         <p className="text-slate-600 mb-6 text-sm leading-relaxed">Sucikan harta dengan berbagi kepada sesama.</p>
                         <span className="text-[#113642] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all">Mulai Donasi <ArrowRight size={16} /></span>
                     </Link>
@@ -203,19 +238,19 @@ const HomePage = ({ articles, donations }) => {
                             <h3 className="text-xl text-[#113642] font-bold font-serif mb-6 uppercase tracking-widest">Penerima Manfaat</h3>
 
                             <div className="space-y-4">
-                                {[
-                                    { label: "Yatim & Dhuafa", count: "150+", color: "bg-blue-500" },
-                                    { label: "Guru Ngaji", count: "25+", color: "bg-green-500" },
-                                    { label: "Bantuan UMKM", count: "10+", color: "bg-orange-500" }
-                                ].map((stat, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-100">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-3 h-3 rounded-full ${stat.color}`}></div>
-                                            <span className="text-slate-700 font-medium">{stat.label}</span>
+                                {statsList.length > 0 ? (
+                                    statsList.map((stat) => (
+                                        <div key={stat.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-3 h-3 rounded-full ${stat.color}`}></div>
+                                                <span className="text-slate-700 font-medium">{stat.label}</span>
+                                            </div>
+                                            <span className="font-bold text-[#29412d]">{stat.count}</span>
                                         </div>
-                                        <span className="font-bold text-[#29412d]">{stat.count}</span>
-                                    </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <p className="text-center text-slate-400 text-sm">Belum ada data.</p>
+                                )}
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-slate-200">

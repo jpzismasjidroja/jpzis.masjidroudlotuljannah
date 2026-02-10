@@ -4,8 +4,17 @@ import {
     Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { formatRupiah } from '../utils';
+import useSEO from '../hooks/useSEO';
 
 const TransparencyPage = ({ donations }) => {
+    // SEO Meta Tags
+    useSEO({
+        title: 'Transparansi Dana',
+        description: 'Laporan transparansi pengelolaan dana zakat, infaq, dan sedekah di LAZIS Masjid Jami\' Roudlatul Jannah. Akuntabel dan amanah.',
+        url: '/transparency',
+        keywords: 'laporan keuangan, transparansi dana, zakat, infaq, sedekah, akuntabilitas'
+    });
+
     const COLORS = ['#29412d', '#113642', '#d0a237', '#8c6b24', '#1f3322'];
 
     // Logic Data Chart

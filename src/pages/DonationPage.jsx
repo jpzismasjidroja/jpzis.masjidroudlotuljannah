@@ -2,8 +2,18 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Calculator, CheckCircle, User, Wallet, CreditCard, Copy, UploadCloud, Image as ImageIcon, X } from 'lucide-react';
 import ZakatCalculator from '../components/ZakatCalculator';
+import useSEO from '../hooks/useSEO';
+import { compressImage } from '../utils/compressImage';
 
 const DonationPage = ({ onDonate }) => {
+    // SEO Meta Tags
+    useSEO({
+        title: 'Donasi Online',
+        description: 'Salurkan zakat, infaq, sedekah, dan wakaf Anda secara online dengan mudah dan transparan di LAZIS Masjid Jami\' Roudlatul Jannah.',
+        url: '/donate',
+        keywords: 'donasi online, zakat online, infaq, sedekah, wakaf, LAZIS'
+    });
+
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -20,6 +30,7 @@ const DonationPage = ({ onDonate }) => {
     const [submitted, setSubmitted] = useState(false);
     const [copied, setCopied] = useState(false);
     const [isUploading, setIsUploading] = useState(false); // State Loading Upload
+    const [isCompressing, setIsCompressing] = useState(false); // NEW: State Status Kompresi
 
     const BANK_DETAILS = {
         bsi: { name: "Bank Syariah Indonesia", number: "7101234567", holder: "Masjid Roudhotul Jannah" },
@@ -31,27 +42,27 @@ const DonationPage = ({ onDonate }) => {
         switch (category) {
             case 'Zakat Maal':
             case 'Zakat Fitrah': // Asumsi Zakat Fitrah ikut logika Zakat
-                return { 
-                    header: "Mari Berzakat", 
+                return {
+                    header: "Mari Berzakat",
                     label: "Data Muzzaki",
                     submitBtn: "Konfirmasi Zakat"
                 };
             case 'Sedekah':
-                return { 
-                    header: "Mari Bersedekah", 
+                return {
+                    header: "Mari Bersedekah",
                     label: "Data Mussaddiq",
                     submitBtn: "Konfirmasi Sedekah"
                 };
             case 'Wakaf':
-                return { 
-                    header: "Mari Berwakaf", 
+                return {
+                    header: "Mari Berwakaf",
                     label: "Data Wakif",
                     submitBtn: "Konfirmasi Wakaf"
                 };
             case 'Infaq':
             default:
-                return { 
-                    header: "Mari Berinfaq", 
+                return {
+                    header: "Mari Berinfaq",
                     label: "Data Munfiq", // Sesuai request (sebelumnya Data Muhsinin)
                     submitBtn: "Konfirmasi Infaq"
                 };
@@ -67,9 +78,98 @@ const DonationPage = ({ onDonate }) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    // --- VALIDASI & SANITASI HELPER ---
+    const sanitizeText = (text) => {
+        // Menghapus karakter berbahaya untuk mencegah injection
+        return text.replace(/<[^>]*>/g, '').trim();
+    };
+
+    const validatePhone = (phone) => {
+        // Hanya angka, 10-15 digit
+        const phoneRegex = /^[0-9]{10,15}$/;
+        return phoneRegex.test(phone.replace(/[\s-]/g, ''));
+    };
+
+    const validateFile = (file) => {
+        // Validasi tipe file (hanya image)
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            return { valid: false, error: 'Hanya file gambar (JPG, PNG, GIF, WEBP) yang diperbolehkan.' };
+        }
+        // Validasi ukuran (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            return { valid: false, error: 'Ukuran file maksimal 5MB.' };
+        }
+        return { valid: true };
+    };
+
+    // NEW: Handler File Change dengan Kompresi
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            setProof(null);
+            return;
+        }
+
+        // Basic Type Validation Before Compression
+        if (!file.type.startsWith('image/')) {
+            alert('Mohon upload file gambar yang valid.');
+            e.target.value = ''; // Reset input
+            return;
+        }
+
+        setIsCompressing(true);
+        try {
+            const compressed = await compressImage(file);
+            setProof(compressed);
+        } catch (error) {
+            console.error('Error compressing image:', error);
+            alert('Gagal memproses gambar. Mohon gunakan file lain.');
+            e.target.value = ''; // Reset input
+        } finally {
+            setIsCompressing(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!proof) { alert("Mohon upload bukti pembayaran terlebih dahulu."); return; }
+
+        // VALIDASI INPUT
+        if (!proof && !isCompressing) {
+            alert("Mohon upload bukti pembayaran terlebih dahulu.");
+            return;
+        }
+
+        if (isCompressing) {
+            alert("Sedang memproses gambar. Mohon tunggu sebentar.");
+            return;
+        }
+
+        // Validasi file (Safety Net)
+        const fileValidation = validateFile(proof);
+        if (!fileValidation.valid) {
+            alert(fileValidation.error);
+            return;
+        }
+
+        // Validasi phone
+        if (!validatePhone(phone)) {
+            alert("Nomor telepon tidak valid. Gunakan 10-15 digit angka.");
+            return;
+        }
+
+        // Validasi amount
+        // FIX: Ensure strict positive integer and reasonable range
+        const numAmount = parseFloat(amount.toString().replace(/[^0-9.]/g, ''));
+        if (isNaN(numAmount) || numAmount < 1000) { // Min donation Rp 1.000
+            alert("Nominal donasi minimal Rp 1.000.");
+            return;
+        }
+        if (numAmount > 1000000000000) {
+            alert("Nominal donasi terlalu besar. Silakan hubungi admin untuk donasi khusus.");
+            return;
+        }
 
         setIsUploading(true);
 
@@ -92,15 +192,15 @@ const DonationPage = ({ onDonate }) => {
 
             const publicUrl = urlData.publicUrl;
 
-            // 3. Siapkan Data untuk Database
+            // 3. Siapkan Data untuk Database (dengan sanitasi)
             const newDonation = {
-                name,
-                phone,
+                name: sanitizeText(name),
+                phone: phone.replace(/[\s-]/g, ''),
                 email,
-                amount: parseFloat(amount),
+                amount: numAmount,
                 type: category,
                 method,
-                message,
+                message: sanitizeText(message),
                 proof_url: publicUrl,
                 status: 'pending'
             };
@@ -164,7 +264,7 @@ const DonationPage = ({ onDonate }) => {
                                         <h3 className="font-serif font-bold text-[#022c22] text-xl flex items-center gap-3 border-b border-amber-200 pb-4">
                                             <User className="text-amber-600" /> {textUI.label}
                                         </h3>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full p-4 border border-amber-200 bg-white rounded-xl outline-none focus:ring-2 focus:ring-[#064e3b] transition" placeholder="Nama Lengkap" />
                                             <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-4 border border-amber-200 bg-white rounded-xl outline-none focus:ring-2 focus:ring-[#064e3b] transition" placeholder="No. WhatsApp" />
@@ -183,7 +283,20 @@ const DonationPage = ({ onDonate }) => {
                                         </div>
                                         <div className="relative group">
                                             <span className="absolute left-6 top-5 text-[#064e3b] font-serif font-bold text-2xl">Rp</span>
-                                            <input type="number" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full pl-16 p-6 text-3xl font-serif font-bold text-[#022c22] bg-white border-2 border-amber-100 rounded-2xl outline-none focus:border-[#064e3b] shadow-inner" placeholder="0" />
+                                            <input
+                                                type="text"
+                                                required
+                                                value={amount}
+                                                onChange={(e) => {
+                                                    // Hanya ambil angka
+                                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                                    // Format dengan titik
+                                                    const formatted = val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                                    setAmount(formatted);
+                                                }}
+                                                className="w-full pl-16 p-6 text-3xl font-serif font-bold text-[#022c22] bg-white border-2 border-amber-100 rounded-2xl outline-none focus:border-[#064e3b] shadow-inner"
+                                                placeholder="0"
+                                            />
                                         </div>
                                         <textarea rows={3} value={message} onChange={(e) => setMessage(e.target.value)} className="w-full p-4 border border-amber-200 bg-white rounded-xl outline-none focus:ring-2 focus:ring-[#064e3b] text-sm font-serif placeholder:italic" placeholder="Tulis doa atau pesan khusus..."></textarea>
                                     </div>
@@ -203,7 +316,7 @@ const DonationPage = ({ onDonate }) => {
                                         <div className="bg-[#FFFCF5] p-6 rounded-2xl border border-amber-200 text-center relative">
                                             {method === 'qris' ? (
                                                 <div>
-                                                    <p className="text-xs font-bold text-[#064e3b] mb-6 uppercase tracking-[0.2em]">A/N JPZIZ MASJID JAMI' <br />RAUDLATUL JANNAH</p>
+                                                    <p className="text-xs font-bold text-[#064e3b] mb-6 uppercase tracking-[0.2em]">A/N JPZIZ MASJID JAMI' <br />ROUDLATUL JANNAH</p>
                                                     <div className="bg-white p-4 inline-block rounded-2xl border-2 border-[#022c22] shadow-2xl">
                                                         <img src="/assets/img/qris.jpg" alt="QRIS" className="w-56 h-56 rounded-lg mix-blend-multiply" />
                                                     </div>
@@ -229,9 +342,11 @@ const DonationPage = ({ onDonate }) => {
                                     <div>
                                         <label className="block font-serif font-bold text-xl text-[#022c22] mb-4">Bukti Transfer</label>
                                         <div className="border-2 border-dashed border-amber-300 rounded-2xl p-10 text-center hover:bg-amber-50 transition relative cursor-pointer bg-white group">
-                                            <input type="file" accept="image/*" required onChange={(e) => setProof(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                            <input type="file" accept="image/*" required onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                             <div className="flex flex-col items-center gap-4 text-slate-500 group-hover:text-[#064e3b] transition">
-                                                {proof ? (
+                                                {isCompressing ? (
+                                                    <><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#064e3b]"></div><span className="font-serif italic text-lg text-[#064e3b]">Memproses gambar...</span></>
+                                                ) : proof ? (
                                                     <><ImageIcon size={48} className="text-[#064e3b] drop-shadow-lg" /><span className="font-bold text-[#022c22] text-lg truncate max-w-[250px]">{proof.name}</span></>
                                                 ) : (
                                                     <><UploadCloud size={48} className="text-amber-400 group-hover:scale-110 transition" /><span className="font-serif italic text-lg">Sentuh untuk unggah gambar</span></>
@@ -241,11 +356,11 @@ const DonationPage = ({ onDonate }) => {
                                     </div>
                                     <button
                                         type="submit"
-                                        disabled={isUploading}
+                                        disabled={isUploading || isCompressing}
                                         className="w-full bg-gradient-to-r from-[#022c22] to-[#064e3b] text-amber-100 py-5 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-[#064e3b]/40 transition transform hover:-translate-y-1 font-serif tracking-widest uppercase disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {/* LOGIC UPDATE 3: TOMBOL SUBMIT SESUAI KATEGORI */}
-                                        {isUploading ? 'Sedang Mengirim...' : textUI.submitBtn}
+                                        {isUploading ? 'Sedang Mengirim...' : isCompressing ? 'Memproses Gambar...' : textUI.submitBtn}
                                     </button>
                                 </form>
                             )}

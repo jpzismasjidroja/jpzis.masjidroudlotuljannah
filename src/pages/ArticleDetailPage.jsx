@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Facebook, Instagram, Calendar, User, Tag, ArrowRight, Share2, Clock } from 'lucide-react';
+import DOMPurify from 'dompurify';
+import useSEO from '../hooks/useSEO';
 
 const ArticleDetailPage = ({ articles }) => {
     const { id } = useParams();
@@ -9,17 +11,82 @@ const ArticleDetailPage = ({ articles }) => {
     const articleIndex = articles.findIndex(a => a.id == id || a.slug === id);
     const selectedArticle = articles[articleIndex];
 
+    // SEO Meta Tags - Dynamic berdasarkan artikel
+    // SEO Meta Tags - Dynamic berdasarkan artikel
+    useSEO({
+        title: selectedArticle?.title || 'Artikel',
+        description: selectedArticle?.excerpt || 'Baca artikel kajian dan berita dari Masjid Jami\' Roudlatul Jannah',
+        image: selectedArticle?.image || '/assets/img/logo.jpg',
+        url: `/articles/${selectedArticle?.slug || id}`,
+        type: 'article',
+        keywords: selectedArticle?.tags?.join(', ') || 'kajian islam, artikel, masjid',
+        structuredData: selectedArticle ? {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": selectedArticle.title,
+            "image": selectedArticle.image ? [`https://masjid-roudlatuljannah.or.id${selectedArticle.image}`] : [],
+            "datePublished": selectedArticle.date,
+            "author": [{
+                "@type": "Person",
+                "name": selectedArticle.author || "Admin"
+            }]
+        } : null
+    });
+
     // Navigation logic
     const prevArticle = articleIndex > 0 ? articles[articleIndex - 1] : null;
     const nextArticle = articleIndex < articles.length - 1 ? articles[articleIndex + 1] : null;
 
-    // --- HTML SANITIZER ---
+    // --- SECURE HTML SANITIZER menggunakan DOMPurify ---
+    // Meniru perilaku sanitizer lama: hapus style & class, tapi tetap aman dari XSS
     const sanitizeHTML = (htmlString) => {
         if (!htmlString) return "";
-        return htmlString
+
+        // SECURITY PATCH: Whitelist Iframe Sources via Hook
+        DOMPurify.removeAllHooks(); // Reset previous hooks
+        DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+            if (data.tagName === 'iframe') {
+                const src = node.getAttribute('src') || '';
+                // Daftar domain yang diizinkan (Youtube, Spotify, Google Maps)
+                const allowedDomains = [
+                    'www.youtube.com',
+                    'www.youtube-nocookie.com',
+                    'open.spotify.com',
+                    'www.google.com',
+                    'maps.google.com'
+                ];
+
+                try {
+                    const url = new URL(src);
+                    // Cek apalah hostname diakhiri dengan salah satu domain yang diizinkan
+                    const isAllowed = allowedDomains.some(domain => url.hostname === domain || url.hostname.endsWith('.' + domain));
+
+                    if (!isAllowed) {
+                        node.remove(); // Hapus iframe jika domain tidak valid
+                    }
+                } catch (e) {
+                    node.remove(); // Hapus iframe jika URL malformed
+                }
+            }
+        });
+
+        // Sanitize dengan DOMPurify (aman dari XSS)
+        let cleanHTML = DOMPurify.sanitize(htmlString, {
+            ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'a', 'ul', 'ol', 'li',
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img', 'figure',
+                'figcaption', 'video', 'iframe', 'span', 'div', 'table', 'thead',
+                'tbody', 'tr', 'th', 'td'],
+            ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target', 'rel', 'width', 'height', 'frameborder', 'allowfullscreen'],
+            ALLOW_DATA_ATTR: false,
+        });
+
+        // Hapus style dan class seperti sanitizer lama untuk konsistensi layout
+        cleanHTML = cleanHTML
             .replace(/style="[^"]*"/g, "")
             .replace(/class="[^"]*"/g, "")
             .replace(/&nbsp;/g, " ");
+
+        return cleanHTML;
     };
 
     if (!selectedArticle) {
@@ -90,14 +157,15 @@ const ArticleDetailPage = ({ articles }) => {
                     </div>
 
                     {/* CONTENT BODY */}
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 md:p-12">
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 md:p-12 overflow-hidden">
                         <div
-                            className="prose prose-lg prose-slate max-w-none 
+                            className="prose prose-lg prose-slate max-w-none break-words overflow-x-hidden
                                 prose-headings:font-serif prose-headings:text-[#022c22] 
-                                prose-p:text-slate-600 prose-p:leading-relaxed 
-                                prose-a:text-[#d0a237] prose-a:no-underline hover:prose-a:underline
+                                prose-p:text-slate-600 prose-p:leading-relaxed prose-p:break-words
+                                prose-a:text-[#d0a237] prose-a:no-underline hover:prose-a:underline prose-a:break-all
                                 prose-blockquote:border-l-[#d0a237] prose-blockquote:bg-amber-50/50 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:text-[#064e3b] prose-blockquote:not-italic
-                                prose-img:rounded-xl prose-img:shadow-lg"
+                                prose-img:rounded-xl prose-img:shadow-lg prose-img:max-w-full"
+                            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                             dangerouslySetInnerHTML={{ __html: sanitizeHTML(selectedArticle.content) }}
                         />
 

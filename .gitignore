@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment Variables - CRITICAL: Do not commit!
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
