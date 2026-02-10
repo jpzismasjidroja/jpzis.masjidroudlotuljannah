@@ -809,14 +809,37 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                         </div>
 
                         {/* Chart Section */}
+                        {/* Chart Section */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 w-full overflow-hidden">
+                            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 w-full overflow-hidden flex flex-col">
                                 <h3 className="font-bold text-[#022c22] mb-6">Analitik Donasi</h3>
-                                <div className="h-64 md:h-80 w-full" style={{ minHeight: '300px' }}><ResponsiveContainer width="100%" height="100%" minWidth={0}><BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" interval={0} fontSize={12} tick={{ dy: 5 }} /><YAxis fontSize={12} /><Tooltip /><Bar dataKey="value" fill="#d0a237" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div>
+                                <div className="flex-1 w-full min-h-[300px] relative">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={chartData}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="name" interval={0} fontSize={12} tick={{ dy: 5 }} />
+                                            <YAxis fontSize={12} />
+                                            <Tooltip />
+                                            <Bar dataKey="value" fill="#d0a237" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
-                            <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 w-full overflow-hidden">
+                            <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 w-full overflow-hidden flex flex-col">
                                 <h3 className="font-bold text-[#022c22] mb-6">Sebaran Tipe</h3>
-                                <div className="h-64 md:h-80 w-full" style={{ minHeight: '300px' }}><ResponsiveContainer width="100%" height="100%" minWidth={0}><PieChart><Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{chartData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />))}</Pie><Tooltip /><Legend /></PieChart></ResponsiveContainer></div>
+                                <div className="flex-1 w-full min-h-[300px] relative">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                                {chartData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
                     </div>
