@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo-masjid.png" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
+  <img src="https://jpzis.masjidroja.com/header-logo.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
 
   # 🕌 JPZIS Masjid Jami' Roudlatul Jannah
   
