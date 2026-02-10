@@ -1,9 +1,7 @@
 <div align="center">
-    <img src="https://jpzis.masjidroja.com/logo-masjid.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
-  <img src="https://jpzis.masjidroja.com/header-logo.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
-  <img src="https://jpzis.masjidroja.com/logo-jpzis.webp" width="120" height="120" />
+  <img src="public/logo-masjid.png" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
 
-  #  JPZIS Masjid Jami' Roudlatul Jannah
+  # 🕌 JPZIS Masjid Jami' Roudlatul Jannah
   
   **Website Resmi Jaringan Pengelola Zakat, Infaq, dan Sedekah (JPZIS)**
   
@@ -29,18 +27,18 @@
 
 ---
 
-##  Rilis Terbaru
+## 📢 Rilis Terbaru
 **Versi Saat Ini: v1.2.0**
 
 Lihat catatan perubahan lengkap dan riwayat update di [**CHANGELOG.md**](./CHANGELOG.md).
 
 ---
 
-##  Tentang Project
+## 🌟 Tentang Project
 
 Website ini dibangun untuk memfasilitasi jamaah dalam menunaikan Zakat, Infaq, dan Sedekah secara mudah, transparan, dan akuntabel. Dilengkapi dengan sistem manajemen konten (CMS) yang powerful, pengurus masjid dapat dengan mudah mengelola artikel, galeri kegiatan, hingga laporan keuangan secara *real-time*.
 
-##  Teknologi
+## 🛠 Teknologi
 
 Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user experience* terbaik.
 
@@ -48,6 +46,7 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
 <div align="center">
   <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white" alt="React Router" />
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
 </div>
@@ -65,24 +64,27 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
 </div>
 
-### Security & Deployment
+### Performance, Security & Deployment
 <div align="center">
   <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages" />
   <img src="https://img.shields.io/badge/Cloudflare_Turnstile-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Turnstile" />
+  <img src="https://img.shields.io/badge/Rocket_Loader-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Rocket Loader" />
+  <img src="https://img.shields.io/badge/Browser_Insights-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Browser Insights" />
+  <img src="https://img.shields.io/badge/HTTP%2F3-005C9C?style=for-the-badge&logo=internet-explorer&logoColor=white" alt="HTTP/3" />
 </div>
 
 ---
 
-##  Fitur Unggulan
+## 🚀 Fitur Unggulan
 
-###  Untuk Jamaah (Public)
+### 🌍 Untuk Jamaah (Public)
 *   **Donasi & Zakat Online**: Integrasi pembayaran QRIS & Transfer Bank yang mudah.
 *   **Kalkulator Zakat Cerdas**: Hitung kewajiban zakat maal dan profesi secara otomatis.
 *   **Realtime Update**: Notifikasi donasi masuk secara langsung (*Live*).
 *   **Transparansi Dana**: Laporan keuangan terbuka yang dapat diakses publik.
 *   **Pusat Informasi**: Jadwal sholat, artikel kajian, dan galeri kegiatan masjid.
 
-###  Untuk Pengurus (Admin CMS)
+### 🛡️ Untuk Pengurus (Admin CMS)
 *   **Dashboard Statistik**: Visualisasi data donasi dan pengunjung via grafik interaktif.
 *   **Manajemen Donasi**: Verifikasi bukti transfer dan pencatatan manual/otomatis.
 *   **Content Management**: Editor artikel *Rich Text* dan upload galeri foto kegiatan.
@@ -91,7 +93,7 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
 
 ---
 
-##  Instalasi & Pengembangan
+## 📦 Instalasi & Pengembangan
 
 Ikuti langkah berikut untuk menjalankan project di komputer lokal Anda:
 
@@ -144,7 +146,7 @@ Database dibangun di atas **PostgreSQL** via Supabase dengan fitur keamanan **Ro
 
 ---
 
-##  Kontribusi
+## 🤝 Kontribusi
 
 Kontribusi sangat diterima untuk pengembangan syiar dakwah digital ini. Silakan buat *Pull Request* atau *Issue* jika menemukan *bug* atau memiliki ide fitur baru.
 
@@ -156,9 +158,11 @@ Kontribusi sangat diterima untuk pengembangan syiar dakwah digital ini. Silakan 
 
 ---
 
-##  Lisensi
+## 📝 Lisensi
 
 Hak Cipta © 2026 **JPZIS Masjid Jami' Roudlatul Jannah**.
 Project ini dibuat khusus untuk operasional masjid dan dakwah.
 
-
+<div align="center">
+  <p>Dibuat dengan ❤️ untuk Umat</p>
+</div>
