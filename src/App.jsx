@@ -72,11 +72,19 @@ function App() {
             setUser(session?.user ?? null);
         });
 
+        const handleFocus = () => {
+            fetchDonations();
+            fetchArticles();
+        };
+
+        window.addEventListener('focus', handleFocus);
+
         fetchDonations();
         fetchArticles();
 
         return () => {
             authListener.subscription.unsubscribe();
+            window.removeEventListener('focus', handleFocus);
         };
     }, []);
 
