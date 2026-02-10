@@ -7,7 +7,7 @@ import {
 import {
     LogOut, LayoutDashboard, FileText, Wallet, CheckCircle, TrendingUp, Users,
     Plus, Edit, Trash2, Camera, ExternalLink, Save, Eye, EyeOff, Download, Menu, X, Image as ImageIcon, Loader2,
-    Shield, UserPlus, ShieldAlert
+    Shield, UserPlus, ShieldAlert, RefreshCw
 } from 'lucide-react';
 import 'react-quill-new/dist/quill.snow.css';
 import { supabase } from '../supabaseClient';
@@ -771,6 +771,17 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                     </div>
 
                     <div className="flex flex-col md:flex-row md:items-center gap-4">
+                        <button
+                            onClick={async () => {
+                                setLoading(true);
+                                await Promise.all([fetchDonations(), fetchArticles()]);
+                                setLoading(false);
+                            }}
+                            className="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-[#022c22] font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2 justify-center"
+                            disabled={loading}
+                        >
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> <span className="hidden md:inline">Refresh Data</span>
+                        </button>
                         <a href="/" target="_blank" className="text-[#064e3b] hover:text-[#d0a237] transition flex items-center gap-1 font-bold text-sm bg-white px-3 py-2 rounded-lg shadow-sm border border-slate-100 md:bg-transparent md:shadow-none md:border-none justify-center md:justify-start">
                             <ExternalLink size={16} /> <span className="md:inline">Lihat Website</span>
                         </a>

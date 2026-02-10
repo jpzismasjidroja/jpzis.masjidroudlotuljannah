@@ -115,7 +115,8 @@ function App() {
     const handleNewDonation = async (newDonation) => {
         const { error } = await supabase.from('donations').insert([newDonation]);
         if (error) throw error;
-        // fetchDonations triggered by realtime subscription
+        // Manual fetch backup if Realtime is slow/disabled
+        fetchDonations();
     };
 
     // Hide Navbar/Footer on Admin Routes
