@@ -7,7 +7,7 @@ import { formatRupiah } from '../utils';
 import useSEO from '../hooks/useSEO';
 
 const TransparencyPage = ({ donations }) => {
-    // SEO Meta Tags
+
     useSEO({
         title: 'Transparansi Dana',
         description: 'Laporan transparansi pengelolaan dana zakat, infaq, dan sedekah di LAZIS Masjid Jami\' Roudlatul Jannah. Akuntabel dan amanah.',

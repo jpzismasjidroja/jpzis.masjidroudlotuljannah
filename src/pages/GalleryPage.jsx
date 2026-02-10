@@ -4,7 +4,7 @@ import { Image, ZoomIn, Loader2 } from 'lucide-react';
 import useSEO from '../hooks/useSEO';
 
 const GalleryPage = () => {
-    // SEO Meta Tags
+
     useSEO({
         title: 'Galeri Kegiatan',
         description: 'Galeri dokumentasi kegiatan sosial dan keagamaan di Masjid Jami\' Roudlatul Jannah. Lihat momen-momen berkesan.',

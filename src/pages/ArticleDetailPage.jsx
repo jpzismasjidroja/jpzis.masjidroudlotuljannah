@@ -11,8 +11,8 @@ const ArticleDetailPage = ({ articles }) => {
     const articleIndex = articles.findIndex(a => a.id == id || a.slug === id);
     const selectedArticle = articles[articleIndex];
 
-    // SEO Meta Tags - Dynamic berdasarkan artikel
-    // SEO Meta Tags - Dynamic berdasarkan artikel
+
+
     useSEO({
         title: selectedArticle?.title || 'Artikel',
         description: selectedArticle?.excerpt || 'Baca artikel kajian dan berita dari Masjid Jami\' Roudlatul Jannah',

@@ -13,8 +13,6 @@ const QuoteIcon = ({ className }) => (
 );
 
 const HomePage = ({ articles, donations }) => {
-    // SEO Meta Tags
-    // SEO Meta Tags
     useSEO({
         title: 'Beranda',
         description: 'Website resmi LAZIS Masjid Jami\' Roudlatul Jannah. Salurkan zakat, infaq, dan sedekah Anda dengan mudah dan transparan.',
@@ -27,7 +25,6 @@ const HomePage = ({ articles, donations }) => {
 
     const [visible, setVisible] = useState(true);
 
-    // FETCH BENEFICIARIES STATS
     const [statsList, setStatsList] = useState([]);
 
     useEffect(() => {
@@ -40,7 +37,6 @@ const HomePage = ({ articles, donations }) => {
         };
         fetchStats();
 
-        // Optional: Realtime subscription for stats update without refresh
         const statsSub = supabase
             .channel('public:beneficiaries')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'beneficiaries' }, fetchStats)
@@ -70,12 +66,10 @@ const HomePage = ({ articles, donations }) => {
         return () => clearInterval(interval);
     }, []);
 
-    // Calculate total donation
     const totalDonation = donations ? donations.reduce((sum, item) => sum + parseInt(item.amount || 0), 0) : 0;
 
     return (
         <div className="bg-transparent">
-            {/* 1. HERO SECTION */}
             <div className="relative pt-32 pb-48 lg:pt-48 lg:pb-64 overflow-hidden bg-[#29412d] min-h-[85vh] flex items-center">
                 <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
                     <svg className="relative block w-[calc(100%+1.3px)] h-[80px] md:h-[150px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -98,7 +92,6 @@ const HomePage = ({ articles, donations }) => {
                         Roudlatul <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a0781e] via-yellow-200 to-[#a0781e] italic">Jannah</span>
                     </h1>
 
-                    {/* QUOTES HERO */}
                     <div className="min-h-[100px] mb-8">
                         <p className={`text-lg md:text-2xl text-white max-w-3xl mx-auto leading-relaxed transition-opacity duration-500 font-sans font-light ${visible ? 'opacity-100' : 'opacity-0'}`}>
                             "{quotesData[currentQuoteIndex].text}"
@@ -118,11 +111,9 @@ const HomePage = ({ articles, donations }) => {
                 </div>
             </div>
 
-            {/* 2. OVERLAY CARDS */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-32 relative z-30">
                 <h2 className="sr-only">Layanan Utama</h2>
                 <div className="grid md:grid-cols-3 gap-8">
-                    {/* Card 1 */}
                     <Link to="/donate" className="bg-[#FFFCF5] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-bl-[100px] -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition"></div>
                         <div className="bg-[#29412d] w-14 h-14 rounded-full flex items-center justify-center text-[#d0a237] mb-6 shadow-lg group-hover:bg-[#d0a237] group-hover:text-[#29412d] transition"><Heart size={24} /></div>
@@ -131,7 +122,6 @@ const HomePage = ({ articles, donations }) => {
                         <span className="text-[#113642] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all">Mulai Donasi <ArrowRight size={16} /></span>
                     </Link>
 
-                    {/* Card 2 */}
                     <Link to="/transparency" className="bg-[#29412d] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
                         <div className="bg-[#d0a237] w-14 h-14 rounded-full flex items-center justify-center text-[#29412d] mb-6 shadow-lg group-hover:bg-white group-hover:text-[#29412d] transition"><FileText size={24} /></div>
@@ -140,8 +130,6 @@ const HomePage = ({ articles, donations }) => {
                         <span className="text-[#d0a237] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all">Lihat Data <ArrowRight size={16} /></span>
                     </Link>
 
-                    {/* Card 3 */}
-                    {/* Card 3 - Galeri */}
                     <Link to="/gallery" className="bg-[#113642] p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#d0a237]/30 hover:-translate-y-2 transition duration-500 cursor-pointer group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#d0a237] rounded-bl-[100px] -mr-8 -mt-8 opacity-20 group-hover:scale-110 transition"></div>
                         <div className="bg-[#d0a237] w-14 h-14 rounded-full flex items-center justify-center text-[#113642] mb-6 shadow-lg group-hover:bg-white group-hover:text-[#113642] transition"><ImageIcon size={24} /></div>
@@ -152,11 +140,9 @@ const HomePage = ({ articles, donations }) => {
                 </div>
             </div>
 
-            {/* 3. VISI & MISI SECTION */}
             <div className="py-24 bg-white relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col md:flex-row items-center gap-16">
-                        {/* Kolom Gambar */}
                         <div className="md:w-1/2 relative">
                             <div className="absolute inset-0 bg-[#d0a237] rounded-[3rem] rotate-3 opacity-20 transform translate-x-4 translate-y-4"></div>
                             <div className="relative rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl">
@@ -167,7 +153,6 @@ const HomePage = ({ articles, donations }) => {
                             </div>
                         </div>
 
-                        {/* Kolom Teks Visi Misi */}
                         <div className="md:w-1/2">
                             <span className="text-[#854d0e] font-bold tracking-widest uppercase text-sm font-serif">Profil Singkat</span>
                             <h2 className="text-4xl font-bold text-[#29412d] font-serif mt-2 mb-6">Visi & Misi Masjid</h2>
@@ -203,7 +188,6 @@ const HomePage = ({ articles, donations }) => {
                 </div>
             </div>
 
-            {/* 4. SPOILER: STATISTIK & TRANSPARANSI */}
             <div className="py-24 bg-[#113642] relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-5"></div>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -215,11 +199,9 @@ const HomePage = ({ articles, donations }) => {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
-                        {/* SPOILER 1: DONASI MASUK */}
                         <div className="bg-[#29412d] rounded-3xl p-8 border border-[#d0a237]/30 relative overflow-hidden group hover:border-[#d0a237] transition">
                             <div className="absolute top-0 right-0 p-4 opacity-10"><Wallet size={100} className="text-[#d0a237]" /></div>
                             <h3 className="text-xl text-[#d0a237] font-bold font-serif mb-2 uppercase tracking-widest">Total Donasi Masuk</h3>
-                            {/* Menghitung total donasi dari state 'donations' */}
                             <p className="text-4xl md:text-5xl font-bold text-white mb-4">
                                 {formatRupiah(totalDonation)}
                             </p>
@@ -232,7 +214,6 @@ const HomePage = ({ articles, donations }) => {
                             </Link>
                         </div>
 
-                        {/* SPOILER 2: PENERIMA MANFAAT */}
                         <div className="bg-[#fffcf5] rounded-3xl p-8 border border-[#d0a237] relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10"><Users size={100} className="text-[#113642]" /></div>
                             <h3 className="text-xl text-[#113642] font-bold font-serif mb-6 uppercase tracking-widest">Penerima Manfaat</h3>
@@ -262,7 +243,6 @@ const HomePage = ({ articles, donations }) => {
                 </div>
             </div>
 
-            {/* 5. INTEGRASI ARTIKEL */}
             <div className="py-20 bg-transparent">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">

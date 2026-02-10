@@ -7,7 +7,6 @@ import useSEO from '../hooks/useSEO';
 import { compressImage } from '../utils/compressImage';
 
 const DonationPage = ({ onDonate }) => {
-    // SEO Meta Tags
     useSEO({
         title: 'Donasi Online',
         description: 'Salurkan zakat, infaq, sedekah, dan wakaf Anda secara online dengan mudah dan transparan di LAZIS Masjid Jami\' Roudlatul Jannah.',
@@ -24,25 +23,25 @@ const DonationPage = ({ onDonate }) => {
     const [message, setMessage] = useState('');
     const [proof, setProof] = useState(null);
 
-    // State untuk Mobile Calculator Popup
+
     const [showMobileCalculator, setShowMobileCalculator] = useState(false);
 
-    // State untuk UI
+
     const [submitted, setSubmitted] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [isUploading, setIsUploading] = useState(false); // State Loading Upload
-    const [isCompressing, setIsCompressing] = useState(false); // NEW: State Status Kompresi
+    const [isUploading, setIsUploading] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
 
     const BANK_DETAILS = {
-        bsi: { name: "Bank Syariah Indonesia", number: "7101234567", holder: "Masjid Roudhotul Jannah" },
-        muamalat: { name: "Bank Muamalat", number: "1019876543", holder: "Masjid Roudhotul Jannah" }
+        bsi: { name: "Bank Syariah Indonesia", number: "7101234567", holder: "Masjid Roudlotul Jannah" },
+        muamalat: { name: "Bank Muamalat", number: "1019876543", holder: "Masjid Roudlotul Jannah" }
     };
 
-    // --- LOGIC BARU: MENGUBAH TEKS BERDASARKAN KATEGORI ---
+
     const getDynamicText = () => {
         switch (category) {
             case 'Zakat Maal':
-            case 'Zakat Fitrah': // Asumsi Zakat Fitrah ikut logika Zakat
+            case 'Zakat Fitrah':
                 return {
                     header: "Mari Berzakat",
                     label: "Data Muzzaki",
@@ -64,14 +63,13 @@ const DonationPage = ({ onDonate }) => {
             default:
                 return {
                     header: "Mari Berinfaq",
-                    label: "Data Munfiq", // Sesuai request (sebelumnya Data Muhsinin)
+                    label: "Data Munfiq",
                     submitBtn: "Konfirmasi Infaq"
                 };
         }
     };
 
     const textUI = getDynamicText();
-    // -------------------------------------------------------
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
@@ -79,25 +77,24 @@ const DonationPage = ({ onDonate }) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // --- VALIDASI & SANITASI HELPER ---
+
     const sanitizeText = (text) => {
-        // Menghapus karakter berbahaya untuk mencegah injection
+
         return text.replace(/<[^>]*>/g, '').trim();
     };
 
     const validatePhone = (phone) => {
-        // Hanya angka, 10-15 digit
+
         const phoneRegex = /^[0-9]{10,15}$/;
         return phoneRegex.test(phone.replace(/[\s-]/g, ''));
     };
 
     const validateFile = (file) => {
-        // Validasi tipe file (hanya image)
+
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             return { valid: false, error: 'Hanya file gambar (JPG, PNG, GIF, WEBP) yang diperbolehkan.' };
         }
-        // Validasi ukuran (max 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
             return { valid: false, error: 'Ukuran file maksimal 5MB.' };
@@ -105,7 +102,7 @@ const DonationPage = ({ onDonate }) => {
         return { valid: true };
     };
 
-    // NEW: Handler File Change dengan Kompresi
+
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) {
@@ -138,13 +135,13 @@ const DonationPage = ({ onDonate }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // VALIDASI TURNSTILE
+
         if (!turnstileToken) {
             alert('Harap verifikasi bahwa Anda bukan robot.');
             return;
         }
 
-        // VALIDASI INPUT
+
         if (!proof && !isCompressing) {
             alert("Mohon upload bukti pembayaran terlebih dahulu.");
             return;
@@ -155,21 +152,20 @@ const DonationPage = ({ onDonate }) => {
             return;
         }
 
-        // Validasi file (Safety Net)
+
         const fileValidation = validateFile(proof);
         if (!fileValidation.valid) {
             alert(fileValidation.error);
             return;
         }
 
-        // Validasi phone
+
         if (!validatePhone(phone)) {
             alert("Nomor telepon tidak valid. Gunakan 10-15 digit angka.");
             return;
         }
 
-        // Validasi amount
-        // FIX: Ensure strict positive integer and reasonable range
+
         const numAmount = parseFloat(amount.toString().replace(/[^0-9.]/g, ''));
         if (isNaN(numAmount) || numAmount < 1000) { // Min donation Rp 1.000
             alert("Nominal donasi minimal Rp 1.000.");
@@ -231,7 +227,7 @@ const DonationPage = ({ onDonate }) => {
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16 relative">
-                    {/* LOGIC UPDATE 1: JUDUL HEADER BERUBAH */}
+
                     <h2 className="text-4xl md:text-5xl font-bold text-[#022c22] font-serif mb-4">
                         {textUI.header}
                     </h2>
@@ -240,12 +236,12 @@ const DonationPage = ({ onDonate }) => {
 
                 <div className="grid md:grid-cols-3 gap-12 items-start">
                     <div className="md:col-span-1 mb-8 md:mb-0">
-                        {/* TAMPILAN DESKTOP: Calculator selalu muncul */}
+
                         <div className="hidden md:block">
                             <ZakatCalculator />
                         </div>
 
-                        {/* TAMPILAN MOBILE: Tombol untuk memunculkan Calculator */}
+
                         <button
                             onClick={() => setShowMobileCalculator(true)}
                             className="md:hidden w-full bg-[#022c22] text-amber-100 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-lg mb-6 border border-amber-500/30 font-serif tracking-widest uppercase hover:bg-[#064e3b] transition"
@@ -269,7 +265,7 @@ const DonationPage = ({ onDonate }) => {
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-8">
                                     <div className="bg-amber-50/50 p-6 md:p-8 rounded-3xl space-y-6 border border-amber-100/50">
-                                        {/* LOGIC UPDATE 2: LABEL DATA DIRI BERUBAH */}
+
                                         <h3 className="font-serif font-bold text-[#022c22] text-xl flex items-center gap-3 border-b border-amber-200 pb-4">
                                             <User className="text-amber-600" /> {textUI.label}
                                         </h3>
@@ -283,7 +279,7 @@ const DonationPage = ({ onDonate }) => {
                                     <div className="space-y-6">
                                         <label className="block font-serif font-bold text-xl text-[#022c22]">Niat & Nominal</label>
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                            {/* Button Kategori yang memicu perubahan state 'category' */}
+
                                             {['Zakat Maal', 'Zakat Fitrah', 'Infaq', 'Sedekah', 'Wakaf'].map((cat) => (
                                                 <button key={cat} type="button" onClick={() => setCategory(cat)} className={`w-full px-2 py-3 rounded-xl text-sm font-bold border-2 transition-all ${category === cat ? 'bg-[#022c22] text-amber-400 border-[#022c22]' : 'bg-white text-slate-500 border-slate-100 hover:border-amber-400 hover:text-amber-700'}`}>
                                                     {cat}
@@ -297,9 +293,9 @@ const DonationPage = ({ onDonate }) => {
                                                 required
                                                 value={amount}
                                                 onChange={(e) => {
-                                                    // Hanya ambil angka
+
                                                     const val = e.target.value.replace(/[^0-9]/g, '');
-                                                    // Format dengan titik
+
                                                     const formatted = val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                                                     setAmount(formatted);
                                                 }}
@@ -369,7 +365,6 @@ const DonationPage = ({ onDonate }) => {
                                         disabled={isUploading || isCompressing || !turnstileToken}
                                         className="w-full bg-gradient-to-r from-[#022c22] to-[#064e3b] text-amber-100 py-5 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-[#064e3b]/40 transition transform hover:-translate-y-1 font-serif tracking-widest uppercase disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        {/* LOGIC UPDATE 3: TOMBOL SUBMIT SESUAI KATEGORI */}
                                         {isUploading ? 'Sedang Mengirim...' : isCompressing ? 'Memproses Gambar...' : textUI.submitBtn}
                                     </button>
                                 </form>
@@ -378,16 +373,14 @@ const DonationPage = ({ onDonate }) => {
                     </div>
                 </div>
             </div>
-            {/* POPUP MODAL CALCULATOR (MOBILE ONLY) */}
             {showMobileCalculator && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    {/* Backdrop */}
+
                     <div
                         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all"
                         onClick={() => setShowMobileCalculator(false)}
                     ></div>
 
-                    {/* Content */}
                     <div className="relative w-full max-w-md animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setShowMobileCalculator(false)}

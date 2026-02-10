@@ -4,8 +4,7 @@ import { supabase } from '../supabaseClient';
 import useSEO from '../hooks/useSEO';
 
 const ProfilePage = () => {
-    // SEO Meta Tags
-    // SEO Meta Tags
+
     useSEO({
         title: 'Profil Masjid',
         description: 'Profil, visi misi, sejarah, dan struktur pengurus Masjid Jami\' Roudlatul Jannah. Pusat pemberdayaan dakwah Islam.',
@@ -21,14 +20,11 @@ const ProfilePage = () => {
             const { data, error } = await supabase
                 .from('pengurus')
                 .select('*')
-                .order('order', { ascending: true }); // or order by created_at or name
+                .order('order', { ascending: true });
 
             if (error) {
                 console.error('Error fetching pengurus:', error);
             } else {
-                // Formatting data to match expected structure if needed, though exact match is fine
-                // The DB fields: name, role, image_url
-                // The UI expects: name, role, image
                 setStaffMembers(data.map(d => ({
                     ...d,
                     image: d.image_url
@@ -39,10 +35,7 @@ const ProfilePage = () => {
         fetchPengurus();
     }, []);
 
-    // Fallback if DB is empty or loading (optional, but good to keep dummy data if empty?)
-    // For now, let's just initialize as empty. If user adds data via Admin, it shows up.
-    // If we want to keep dummy data until real data exists:
-    // const displayStaff = staffMembers.length > 0 ? staffMembers : DEFAULT_STAFF;
+
 
     const historyData = [
         { year: "1965", text: "Masjid Jami’ Roudlotul Jannah terletak di RW 05, Kelurahan Tasikmadu, dan telah menjadi pusat ibadah serta kegiatan keagamaan masyarakat sejak tahun 1965. Masjid ini didirikan atas inisiatif KH. Yusuf bersama warga setempat, bermula dari bangunan sederhana berukuran 6 x 10 meter yang menjadi tonggak awal kehidupan spiritual masyarakat sekitar." },
@@ -61,7 +54,7 @@ const ProfilePage = () => {
                     <p className="text-[#d0a237] italic mt-2 font-serif">"Pusat Pemberdayaan Dakwah Islam"</p>
                 </div>
 
-                {/* Tab Navigation - Mobile Grid (2 Cols), Desktop Centered */}
+
                 <div className="grid grid-cols-2 md:flex md:flex-wrap md:justify-center gap-3 md:gap-4 mb-8 md:mb-12">
                     {[
                         { id: 'visi_misi', label: 'Visi & Misi', icon: <Award size={18} /> },
@@ -83,10 +76,10 @@ const ProfilePage = () => {
                 <div className="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-2xl border border-[#d0a237]/30 min-h-[600px] relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-5 pointer-events-none"></div>
 
-                    {/* === TAB 1: VISI MISI === */}
+
                     {activeTab === 'visi_misi' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 space-y-10">
-                            {/* VISI CARD */}
+
                             <div className="bg-[#29412d] rounded-3xl p-8 md:p-10 text-center relative overflow-hidden shadow-lg border-b-4 border-[#d0a237]">
                                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
                                 <h3 className="text-3xl font-bold text-white mb-4 font-serif relative z-10">Visi JPZIS</h3>
@@ -95,7 +88,7 @@ const ProfilePage = () => {
                                 </p>
                             </div>
 
-                            {/* MISI LIST */}
+
                             <div>
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="h-px bg-[#d0a237]/50 flex-1"></div>
@@ -128,7 +121,7 @@ const ProfilePage = () => {
                         </div>
                     )}
 
-                    {/* === TAB 2: SEJARAH (TIMELINE LAYOUT) === */}
+
                     {activeTab === 'sejarah' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4">
                             <div className="max-w-4xl mx-auto">
@@ -149,7 +142,7 @@ const ProfilePage = () => {
                         </div>
                     )}
 
-                    {/* === TAB 3: PERAN (TEXT LENGKAP) === */}
+
                     {activeTab === 'peran' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 h-[700px] overflow-y-auto pr-2 custom-scrollbar">
                             <style>{`
@@ -158,7 +151,7 @@ const ProfilePage = () => {
                            .custom-scrollbar::-webkit-scrollbar-thumb { background: #d0a237; border-radius: 4px; }
                            `}</style>
 
-                            {/* BAGIAN 1 */}
+
                             <div className="bg-[#fffbeb] p-8 rounded-3xl mb-8 border border-amber-100">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 bg-[#d0a237] rounded-lg text-white"><Star size={20} /></div>
@@ -188,7 +181,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            {/* BAGIAN 2 */}
+
                             <div className="bg-[#f0fdf4] p-8 rounded-3xl mb-8 border border-green-100">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 bg-[#113642] rounded-lg text-white"><Leaf size={20} /></div>
@@ -212,7 +205,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            {/* BAGIAN 3 */}
+
                             <div className="bg-[#f8fafc] p-8 rounded-3xl border border-slate-200">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 bg-[#29412d] rounded-lg text-white"><BookOpen size={20} /></div>
@@ -244,15 +237,12 @@ const ProfilePage = () => {
                         </div>
                     )}
 
-                    {/* === TAB 4: STRUKTUR PENGURUS === */}
+
                     {activeTab === 'struktur' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 text-center">
                             {(() => {
-                                // Filter Special Roles
                                 const penasihat = staffMembers.find(m => m.role.toLowerCase().includes('penasihat'));
                                 const ketua = staffMembers.find(m => m.role.toLowerCase().includes('ketua') && !m.role.toLowerCase().includes('wakil'));
-
-                                // Filter remaining members for the grid (excluding Penasihat and Ketua)
                                 const gridMembers = staffMembers.filter(m =>
                                     m.id !== penasihat?.id && m.id !== ketua?.id
                                 );
@@ -266,7 +256,7 @@ const ProfilePage = () => {
                                             )}
                                         </div>
 
-                                        {/* KETUA DKM */}
+
                                         {ketua && (
                                             <div className="flex justify-center mb-12">
                                                 <div className="bg-[#29412d] p-8 rounded-[2rem] shadow-xl relative overflow-hidden group max-w-sm w-full transform hover:-translate-y-2 transition duration-500">
@@ -285,7 +275,7 @@ const ProfilePage = () => {
                                             </div>
                                         )}
 
-                                        {/* GRID ANGGOTA */}
+
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                             {gridMembers.map((member, i) => (
                                                 <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg hover:shadow-2xl transition group hover:-translate-y-1">

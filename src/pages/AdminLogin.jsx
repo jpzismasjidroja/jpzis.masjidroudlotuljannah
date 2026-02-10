@@ -27,7 +27,7 @@ const AdminLogin = ({ onLogin }) => {
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-300 to-amber-600"></div>
                 <div className="text-center mb-10">
                     <h2 className="text-3xl font-bold text-[#022c22] font-serif">Admin Portal</h2>
-                    <p className="text-slate-500 mt-2 font-serif italic">Masjid Roudhotul Jannah</p>
+                    <p className="text-slate-500 mt-2 font-serif italic">Masjid Roudlotul Jannah</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

@@ -3,7 +3,7 @@ import ArticleCard from '../components/ArticleCard';
 import useSEO from '../hooks/useSEO';
 
 const ArticlesPage = ({ articles }) => {
-    // SEO Meta Tags
+
     useSEO({
         title: 'Kabar & Kajian',
         description: 'Kumpulan artikel kajian keislaman dan berita terbaru dari Masjid Jami\' Roudlatul Jannah.',

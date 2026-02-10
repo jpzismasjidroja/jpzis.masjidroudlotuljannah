@@ -6,7 +6,7 @@ import useSEO from '../hooks/useSEO';
 const ContactPage = () => {
     const [turnstileToken, setTurnstileToken] = useState(null);
 
-    // SEO Meta Tags
+
     useSEO({
         title: 'Hubungi Kami',
         description: 'Hubungi Masjid Jami\' Roudlatul Jannah. Alamat, telepon, email, dan lokasi maps tersedia.',
