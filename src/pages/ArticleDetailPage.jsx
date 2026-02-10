@@ -24,7 +24,7 @@ const ArticleDetailPage = ({ articles }) => {
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": selectedArticle.title,
-            "image": selectedArticle.image ? [`https://masjid-roudlatuljannah.or.id${selectedArticle.image}`] : [],
+            "image": selectedArticle.image ? [`https://jpzis.masjidroja.com${selectedArticle.image}`] : [],
             "datePublished": selectedArticle.date,
             "author": [{
                 "@type": "Person",

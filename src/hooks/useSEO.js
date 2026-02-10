@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 /**
  * Custom hook untuk dynamic SEO meta tags
  * Mengupdate document head berdasarkan halaman yang aktif
- * FIX: Typo corrected (raudlatul -> roudlatul)
+ * FIX: Typo corrected (Roudlotul -> roudlatul)
  */
 export const useSEO = ({
     title,
@@ -16,7 +16,7 @@ export const useSEO = ({
 }) => {
     const siteName = "LAZIS Masjid Jami' Roudlotul Jannah";
     // FIX: Typo correction
-    const baseUrl = 'https://masjid-roudlatuljannah.or.id';
+    const baseUrl = 'https://jpzis.masjidroja.com';
 
     useEffect(() => {
         // Update title
