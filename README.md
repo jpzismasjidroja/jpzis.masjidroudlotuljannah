@@ -28,11 +28,11 @@
 
 ---
 
-## 🌟 Tentang Project
+##  Tentang Project
 
 Website ini dibangun untuk memfasilitasi jamaah dalam menunaikan Zakat, Infaq, dan Sedekah secara mudah, transparan, dan akuntabel. Dilengkapi dengan sistem manajemen konten (CMS) yang powerful, pengurus masjid dapat dengan mudah mengelola artikel, galeri kegiatan, hingga laporan keuangan secara *real-time*.
 
-## 🛠 Teknologi
+##  Teknologi
 
 Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user experience* terbaik.
 
@@ -65,16 +65,16 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
 
 ---
 
-## 🚀 Fitur Unggulan
+##  Fitur Unggulan
 
-### 🌍 Untuk Jamaah (Public)
+###  Untuk Jamaah (Public)
 *   **Donasi & Zakat Online**: Integrasi pembayaran QRIS & Transfer Bank yang mudah.
 *   **Kalkulator Zakat Cerdas**: Hitung kewajiban zakat maal dan profesi secara otomatis.
 *   **Realtime Update**: Notifikasi donasi masuk secara langsung (*Live*).
 *   **Transparansi Dana**: Laporan keuangan terbuka yang dapat diakses publik.
 *   **Pusat Informasi**: Jadwal sholat, artikel kajian, dan galeri kegiatan masjid.
 
-### 🛡️ Untuk Pengurus (Admin CMS)
+###  Untuk Pengurus (Admin CMS)
 *   **Dashboard Statistik**: Visualisasi data donasi dan pengunjung via grafik interaktif.
 *   **Manajemen Donasi**: Verifikasi bukti transfer dan pencatatan manual/otomatis.
 *   **Content Management**: Editor artikel *Rich Text* dan upload galeri foto kegiatan.
@@ -83,7 +83,7 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
 
 ---
 
-## 📦 Instalasi & Pengembangan
+##  Instalasi & Pengembangan
 
 Ikuti langkah berikut untuk menjalankan project di komputer lokal Anda:
 
@@ -136,7 +136,7 @@ Database dibangun di atas **PostgreSQL** via Supabase dengan fitur keamanan **Ro
 
 ---
 
-## 🤝 Kontribusi
+##  Kontribusi
 
 Kontribusi sangat diterima untuk pengembangan syiar dakwah digital ini. Silakan buat *Pull Request* atau *Issue* jika menemukan *bug* atau memiliki ide fitur baru.
 
@@ -148,11 +148,9 @@ Kontribusi sangat diterima untuk pengembangan syiar dakwah digital ini. Silakan 
 
 ---
 
-## 📝 Lisensi
+##  Lisensi
 
 Hak Cipta © 2026 **JPZIS Masjid Jami' Roudlatul Jannah**.
 Project ini dibuat khusus untuk operasional masjid dan dakwah.
 
-<div align="center">
-  <p>Dibuat dengan ❤️ untuk Umat</p>
-</div>
+
