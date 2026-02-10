@@ -1,10 +1,9 @@
-
 <div align="center">
     <img src="https://jpzis.masjidroja.com/logo-masjid.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
   <img src="https://jpzis.masjidroja.com/header-logo.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
   <img src="https://jpzis.masjidroja.com/logo-jpzis.webp" width="120" height="120" />
 
-  # 🕌 JPZIS Masjid Jami' Roudlatul Jannah
+  #  JPZIS Masjid Jami' Roudlatul Jannah
   
   **Website Resmi Jaringan Pengelola Zakat, Infaq, dan Sedekah (JPZIS)**
   
@@ -25,6 +24,15 @@
     <a href="#-instalasi">Instalasi</a>
   </p>
 </div>
+
+</div>
+
+---
+
+##  Rilis Terbaru
+**Versi Saat Ini: v1.2.0**
+
+Lihat catatan perubahan lengkap dan riwayat update di [**CHANGELOG.md**](./CHANGELOG.md).
 
 ---
 
