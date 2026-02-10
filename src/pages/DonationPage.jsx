@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Calculator, CheckCircle, User, Wallet, CreditCard, Copy, UploadCloud, Image as ImageIcon, X } from 'lucide-react';
 import ZakatCalculator from '../components/ZakatCalculator';
+import TurnstileWidget from '../components/TurnstileWidget';
 import useSEO from '../hooks/useSEO';
 import { compressImage } from '../utils/compressImage';
 
@@ -132,8 +133,16 @@ const DonationPage = ({ onDonate }) => {
         }
     };
 
+    const [turnstileToken, setTurnstileToken] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // VALIDASI TURNSTILE
+        if (!turnstileToken) {
+            alert('Harap verifikasi bahwa Anda bukan robot.');
+            return;
+        }
 
         // VALIDASI INPUT
         if (!proof && !isCompressing) {
@@ -354,9 +363,10 @@ const DonationPage = ({ onDonate }) => {
                                             </div>
                                         </div>
                                     </div>
+                                    <TurnstileWidget onVerify={setTurnstileToken} />
                                     <button
                                         type="submit"
-                                        disabled={isUploading || isCompressing}
+                                        disabled={isUploading || isCompressing || !turnstileToken}
                                         className="w-full bg-gradient-to-r from-[#022c22] to-[#064e3b] text-amber-100 py-5 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-[#064e3b]/40 transition transform hover:-translate-y-1 font-serif tracking-widest uppercase disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {/* LOGIC UPDATE 3: TOMBOL SUBMIT SESUAI KATEGORI */}

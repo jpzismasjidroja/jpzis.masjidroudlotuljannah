@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Send } from 'lucide-react';
+import TurnstileWidget from '../components/TurnstileWidget';
 import useSEO from '../hooks/useSEO';
 
 const ContactPage = () => {
+    const [turnstileToken, setTurnstileToken] = useState(null);
+
     // SEO Meta Tags
     useSEO({
         title: 'Hubungi Kami',
@@ -10,6 +13,16 @@ const ContactPage = () => {
         url: '/contact',
         keywords: 'kontak masjid, alamat masjid, hubungi kami, lokasi masjid roudlatul jannah'
     });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!turnstileToken) {
+            alert('Harap verifikasi bahwa Anda bukan robot.');
+            return;
+        }
+        // Form submit logic here
+        alert('Pesan berhasil dikirim!');
+    };
 
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
@@ -56,18 +69,19 @@ const ContactPage = () => {
                         </div>
                     </div>
                     <div className="md:w-1/2 bg-white p-12 relative">
-                        <form className="space-y-6 relative z-10">
+                        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                             <h3 className="text-2xl font-bold text-[#022c22] font-serif mb-6">Kirim Pesan</h3>
                             <div>
-                                <input type="text" className="w-full bg-[#FFFCF5] border-b-2 border-amber-200 p-4 outline-none focus:border-[#064e3b] transition text-[#022c22] placeholder-slate-400" placeholder="Nama Lengkap" />
+                                <input type="text" className="w-full bg-[#FFFCF5] border-b-2 border-amber-200 p-4 outline-none focus:border-[#064e3b] transition text-[#022c22] placeholder-slate-400" placeholder="Nama Lengkap" required />
                             </div>
                             <div>
-                                <input type="email" className="w-full bg-[#FFFCF5] border-b-2 border-amber-200 p-4 outline-none focus:border-[#064e3b] transition text-[#022c22] placeholder-slate-400" placeholder="Email Anda" />
+                                <input type="email" className="w-full bg-[#FFFCF5] border-b-2 border-amber-200 p-4 outline-none focus:border-[#064e3b] transition text-[#022c22] placeholder-slate-400" placeholder="Email Anda" required />
                             </div>
                             <div>
-                                <textarea rows={4} className="w-full bg-[#FFFCF5] border-b-2 border-amber-200 p-4 outline-none focus:border-[#064e3b] transition text-[#022c22] placeholder-slate-400 resize-none" placeholder="Pesan..."></textarea>
+                                <textarea rows={4} className="w-full bg-[#FFFCF5] border-b-2 border-amber-200 p-4 outline-none focus:border-[#064e3b] transition text-[#022c22] placeholder-slate-400 resize-none" placeholder="Pesan..." required></textarea>
                             </div>
-                            <button className="bg-[#022c22] text-white px-8 py-4 rounded-xl font-bold font-serif tracking-widest hover:bg-[#064e3b] transition w-full flex justify-center items-center gap-2">KIRIM <Send size={16} /></button>
+                            <TurnstileWidget onVerify={setTurnstileToken} />
+                            <button disabled={!turnstileToken} className="bg-[#022c22] text-white px-8 py-4 rounded-xl font-bold font-serif tracking-widest hover:bg-[#064e3b] transition w-full flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">KIRIM <Send size={16} /></button>
                         </form>
                     </div>
                 </div>

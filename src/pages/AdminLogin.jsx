@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 const AdminLogin = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState(null);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!turnstileToken) {
+            alert('Harap verifikasi bahwa Anda bukan robot.');
+            return;
+        }
         setLoading(true);
         const success = await onLogin(email, password);
         setLoading(false);
@@ -45,7 +51,8 @@ const AdminLogin = ({ onLogin }) => {
                             required
                         />
                     </div>
-                    <button type="submit" disabled={loading} className="w-full bg-[#064e3b] text-white py-4 rounded-xl font-bold hover:bg-[#022c22] transition shadow-lg font-serif tracking-wider">
+                    <TurnstileWidget onVerify={setTurnstileToken} />
+                    <button type="submit" disabled={loading || !turnstileToken} className="w-full bg-[#064e3b] text-white py-4 rounded-xl font-bold hover:bg-[#022c22] transition shadow-lg font-serif tracking-wider disabled:opacity-50 disabled:cursor-not-allowed">
                         {loading ? 'MEMUAT...' : 'MASUK'}
                     </button>
                 </form>

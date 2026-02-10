@@ -45,7 +45,7 @@ const GalleryPage = () => {
                     <h1 className="text-4xl md:text-5xl font-bold text-[#022c22] font-serif mt-2 mb-6">Galeri Kegiatan</h1>
                     <div className="h-1 w-24 bg-[#d0a237] mx-auto rounded-full"></div>
                     <p className="text-slate-600 mt-6 max-w-2xl mx-auto text-lg">
-                        Momen-momen kegiatan di Masjid Raudlatul Jannah dalam membangun ukhuwah dan melayani umat.
+                        Momen-momen kegiatan di Masjid Roudlotul Jannah dalam membangun ukhuwah dan melayani umat.
                     </p>
                 </div>
 
