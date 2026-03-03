@@ -4,7 +4,7 @@ import { AlertCircle, Home } from 'lucide-react';
 
 const NotFoundPage = () => {
     useEffect(() => {
-        document.title = "Halaman Tidak Ditemukan | LAZIS Masjid Jami' Raudlatul Jannah";
+        document.title = "Halaman Tidak Ditemukan | LAZIS Masjid Jami' Roudlotul Jannah";
         // Add noindex
         let meta = document.querySelector('meta[name="robots"]');
         if (!meta) {

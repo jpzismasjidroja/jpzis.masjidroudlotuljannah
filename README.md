@@ -46,6 +46,7 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
 <div align="center">
   <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white" alt="React Router" />
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
 </div>
@@ -63,10 +64,13 @@ Dibangun dengan stack teknologi modern untuk performa, keamanan, dan *user exper
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
 </div>
 
-### Security & Deployment
+### Performance, Security & Deployment
 <div align="center">
   <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages" />
   <img src="https://img.shields.io/badge/Cloudflare_Turnstile-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Turnstile" />
+  <img src="https://img.shields.io/badge/Rocket_Loader-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Rocket Loader" />
+  <img src="https://img.shields.io/badge/Browser_Insights-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Browser Insights" />
+  <img src="https://img.shields.io/badge/HTTP%2F3-005C9C?style=for-the-badge&logo=internet-explorer&logoColor=white" alt="HTTP/3" />
 </div>
 
 ---

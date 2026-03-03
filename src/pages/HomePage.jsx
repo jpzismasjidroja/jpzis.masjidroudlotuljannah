@@ -79,7 +79,7 @@ const HomePage = ({ articles, donations }) => {
                     </svg>
                 </div>
                 <div className="absolute inset-0 z-0">
-                    <img src="/hero-mosque.webp" alt="Mosque Aerial View" className="w-full h-full object-cover" fetchPriority="high" loading="eager" />
+                    <img src="/hero-mosque.webp" alt="Mosque Aerial View" className="w-full h-full object-cover" fetchPriority="high" loading="eager" decoding="async" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#29412d] via-[#29412d]/70 to-[#000]/60"></div>
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10"></div>
                 </div>

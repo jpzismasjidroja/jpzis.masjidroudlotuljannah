@@ -33,8 +33,7 @@ const DonationPage = ({ onDonate }) => {
     const [isCompressing, setIsCompressing] = useState(false);
 
     const BANK_DETAILS = {
-        bsi: { name: "Bank Syariah Indonesia", number: "7101234567", holder: "Masjid Roudlotul Jannah" },
-        muamalat: { name: "Bank Muamalat", number: "1019876543", holder: "Masjid Roudlotul Jannah" }
+        bsi: { name: "Bank Syariah Indonesia", number: "7101234567", holder: "Takmir Masjid Roudlotul Jannah" },
     };
 
 
