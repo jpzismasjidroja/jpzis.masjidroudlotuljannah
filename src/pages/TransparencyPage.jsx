@@ -40,7 +40,7 @@ const TransparencyPage = ({ donations }) => {
 
                 <div className="grid md:grid-cols-3 gap-8 mb-12">
                     {/* BAGIAN CHART */}
-                    <div className="md:col-span-1 bg-[#022c22] p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden flex flex-col">
+                    <div className="md:col-span-1 bg-[#022c22] p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden flex flex-col min-w-0">
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl"></div>
                         <h3 className="font-serif text-amber-200 text-xl mb-6 border-b border-white/10 pb-4">Sebaran Dana</h3>
 
