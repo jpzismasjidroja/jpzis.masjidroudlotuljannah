@@ -165,7 +165,7 @@ const DonationPage = ({ onDonate }) => {
         }
 
 
-        const numAmount = parseFloat(amount.toString().replace(/[^0-9.]/g, ''));
+        const numAmount = parseInt(amount.toString().replace(/[^0-9]/g, ''), 10);
         if (isNaN(numAmount) || numAmount < 1000) { // Min donation Rp 1.000
             alert("Nominal donasi minimal Rp 1.000.");
             return;
