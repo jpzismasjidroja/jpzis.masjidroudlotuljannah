@@ -1,31 +1,31 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Send } from 'lucide-react';
 import TurnstileWidget from '../components/TurnstileWidget';
-import useSEO from '../hooks/useSEO';
+import SEO from '../components/SEO';
+import toast from 'react-hot-toast';
 
 const ContactPage = () => {
     const [turnstileToken, setTurnstileToken] = useState(null);
 
 
-    useSEO({
-        title: 'Hubungi Kami',
-        description: 'Hubungi Masjid Jami\' Roudlatul Jannah. Alamat, telepon, email, dan lokasi maps tersedia.',
-        url: '/contact',
-        keywords: 'kontak masjid, alamat masjid, hubungi kami, lokasi masjid roudlatul jannah'
-    });
-
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!turnstileToken) {
-            alert('Harap verifikasi bahwa Anda bukan robot.');
+            toast.error('Harap verifikasi bahwa Anda bukan robot.');
             return;
         }
         // Form submit logic here
-        alert('Pesan berhasil dikirim!');
+        toast.success('Pesan berhasil dikirim!');
     };
 
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
+            <SEO
+                title="Hubungi Kami"
+                description="Hubungi Masjid Jami' Roudlatul Jannah. Alamat, telepon, email, dan lokasi maps tersedia."
+                url="/contact"
+                keywords="kontak masjid, alamat masjid, hubungi kami, lokasi masjid roudlatul jannah"
+            />
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-[#022c22] rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]">
                     <div className="md:w-1/2 p-12 text-amber-50 flex flex-col justify-center relative">
@@ -68,7 +68,7 @@ const ContactPage = () => {
                             ></iframe>
                         </div>
                     </div>
-                    <div className="md:w-1/2 bg-white p-12 relative">
+                    <div className="md:w-1/2 bg-white/90 backdrop-blur-md p-12 relative">
                         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                             <h3 className="text-2xl font-bold text-[#022c22] font-serif mb-6">Kirim Pesan</h3>
                             <div>

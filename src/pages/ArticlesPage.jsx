@@ -1,15 +1,11 @@
 import React from 'react';
 import ArticleCard from '../components/ArticleCard';
-import useSEO from '../hooks/useSEO';
+import ArticleCardSkeleton from '../components/ui/ArticleCardSkeleton';
+import SEO from '../components/SEO';
+import { useGlobalContext } from '../context/GlobalContext';
 
-const ArticlesPage = ({ articles }) => {
-
-    useSEO({
-        title: 'Kabar & Kajian',
-        description: 'Kumpulan artikel kajian keislaman dan berita terbaru dari Masjid Jami\' Roudlatul Jannah.',
-        url: '/articles',
-        keywords: 'artikel islam, kajian, berita masjid, dakwah, kajian keislaman'
-    });
+const ArticlesPage = () => {
+    const { articles, loadingArticles } = useGlobalContext();
 
     // Filter only published articles for the public view
     // Note: If no status field exists (legacy data), consider it published or handle accordingly.
@@ -18,13 +14,23 @@ const ArticlesPage = ({ articles }) => {
 
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
+            <SEO
+                title="Kabar & Kajian"
+                description="Kumpulan artikel kajian keislaman dan berita terbaru dari Masjid Jami' Roudlatul Jannah."
+                url="/articles"
+                keywords="artikel islam, kajian, berita masjid, dakwah, kajian keislaman"
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold text-[#022c22] font-serif">Kabar & Kajian</h2>
                     <p className="text-slate-600 mt-4 max-w-2xl mx-auto">Ikuti update terbaru kegiatan masjid dan kajian keislaman yang bermanfaat.</p>
                 </div>
 
-                {publishedArticles.length > 0 ? (
+                {loadingArticles ? (
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[1, 2, 3, 4, 5, 6].map(n => <ArticleCardSkeleton key={n} />)}
+                    </div>
+                ) : publishedArticles.length > 0 ? (
                     <div className="grid md:grid-cols-3 gap-8">
                         {publishedArticles.map((article) => (
                             <ArticleCard key={article.id} article={article} />

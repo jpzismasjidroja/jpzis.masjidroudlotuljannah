@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Image, ZoomIn, Loader2 } from 'lucide-react';
-import useSEO from '../hooks/useSEO';
+import SEO from '../components/SEO';
 
 const GalleryPage = () => {
-
-    useSEO({
-        title: 'Galeri Kegiatan',
-        description: 'Galeri dokumentasi kegiatan sosial dan keagamaan di Masjid Jami\' Roudlatul Jannah. Lihat momen-momen berkesan.',
-        url: '/gallery',
-        keywords: 'galeri masjid, foto kegiatan, dokumentasi, kegiatan masjid'
-    });
 
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,6 +31,12 @@ const GalleryPage = () => {
 
     return (
         <div className="bg-transparent min-h-screen pt-32 pb-24">
+            <SEO
+                title="Galeri Kegiatan"
+                description="Galeri dokumentasi kegiatan sosial dan keagamaan di Masjid Jami' Roudlatul Jannah. Lihat momen-momen berkesan."
+                url="/gallery"
+                keywords="galeri masjid, foto kegiatan, dokumentasi, kegiatan masjid"
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="text-center mb-16 animate-in slide-in-from-bottom-5 duration-1000">

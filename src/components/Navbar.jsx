@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogIn } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 const Navbar = ({ user, showAdminLink = true }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -117,6 +118,11 @@ const Navbar = ({ user, showAdminLink = true }) => {
             )}
         </nav>
     );
+};
+
+Navbar.propTypes = {
+    user: PropTypes.object,
+    showAdminLink: PropTypes.bool,
 };
 
 export default Navbar;

@@ -1,11 +1,7 @@
 <div align="center">
-<<<<<<< HEAD
-  <img src="public/logo-masjid.png" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
-=======
-    <img src="https://jpzis.masjidroja.com/logo-masjid.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
+  <img src="https://jpzis.masjidroja.com/logo-masjid.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
   <img src="https://jpzis.masjidroja.com/header-logo.webp" alt="Logo Masjid Jami' Roudlatul Jannah" width="120" height="120" />
   <img src="https://jpzis.masjidroja.com/logo-jpzis.webp" width="120" height="120" />
->>>>>>> c6b131ae7a5be22ff658022e378dd7def969363b
 
   # 🕌 JPZIS Masjid Jami' Roudlatul Jannah
   
@@ -149,6 +145,17 @@ Database dibangun di atas **PostgreSQL** via Supabase dengan fitur keamanan **Ro
 | `beneficiaries` | Data statistik penerima manfaat program sosial. |
 | `pengurus` | Data struktur organisasi DKM Masjid. |
 | `admin_roles` | Hak akses dan peran administrator sistem. |
+
+---
+
+## 🚀 Deployment (Cloudflare Pages)
+
+Proyek ini sudah dioptimalkan untuk berjalan di atas ekosistem Cloudflare:
+1. Hubungkan repository GitHub Anda ke **Cloudflare Pages**.
+2. Set Build Command: `npm run build`
+3. Set Build Output Directory: `dist`
+4. Masukkan Environment Variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, dll) di dashboard Pages.
+5. Konfigurasikan Custom Domain ke `jpzis.masjidroja.com` (dan proksikan lewat Cloudflare untuk Turnstile dan Caching).
 
 ---
 

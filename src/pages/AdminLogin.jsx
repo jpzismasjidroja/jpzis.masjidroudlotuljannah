@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TurnstileWidget from '../components/TurnstileWidget';
+import { verifyTurnstileToken } from '../utils/verifyTurnstile';
+import { useGlobalContext } from '../context/GlobalContext';
+import toast from 'react-hot-toast';
 
-const AdminLogin = ({ onLogin }) => {
+const AdminLogin = () => {
+    const { handleLogin } = useGlobalContext();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -12,18 +16,33 @@ const AdminLogin = ({ onLogin }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!turnstileToken) {
-            alert('Harap verifikasi bahwa Anda bukan robot.');
+            toast.error('Harap verifikasi bahwa Anda bukan robot.');
             return;
         }
+
+        // Validasi format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error('Format email tidak valid.');
+            return;
+        }
+
+        // Verifikasi Turnstile token di server-side
+        const isHuman = await verifyTurnstileToken(turnstileToken);
+        if (!isHuman) {
+            toast.error('Verifikasi keamanan gagal. Silakan muat ulang halaman.');
+            return;
+        }
+
         setLoading(true);
-        const success = await onLogin(email, password);
+        const success = await handleLogin(email, password);
         setLoading(false);
         if (success) navigate('/admin');
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 bg-[#022c22]">
-            <div className="max-w-md w-full bg-white p-10 rounded-[2rem] shadow-2xl border-4 border-amber-500/20 relative overflow-hidden">
+            <div className="max-w-md w-full bg-white/80 backdrop-blur-md p-10 rounded-[2rem] shadow-2xl border-4 border-amber-500/20 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-300 to-amber-600"></div>
                 <div className="text-center mb-10">
                     <h2 className="text-3xl font-bold text-[#022c22] font-serif">Admin Portal</h2>

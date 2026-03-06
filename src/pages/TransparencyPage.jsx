@@ -4,16 +4,11 @@ import {
     Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { formatRupiah } from '../utils';
-import useSEO from '../hooks/useSEO';
+import SEO from '../components/SEO';
+import { useGlobalContext } from '../context/GlobalContext';
 
-const TransparencyPage = ({ donations }) => {
-
-    useSEO({
-        title: 'Transparansi Dana',
-        description: 'Laporan transparansi pengelolaan dana zakat, infaq, dan sedekah di LAZIS Masjid Jami\' Roudlatul Jannah. Akuntabel dan amanah.',
-        url: '/transparency',
-        keywords: 'laporan keuangan, transparansi dana, zakat, infaq, sedekah, akuntabilitas'
-    });
+const TransparencyPage = () => {
+    const { donations } = useGlobalContext();
 
     const COLORS = ['#29412d', '#113642', '#d0a237', '#8c6b24', '#1f3322'];
 
@@ -31,6 +26,12 @@ const TransparencyPage = ({ donations }) => {
 
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
+            <SEO
+                title="Transparansi Dana"
+                description="Laporan transparansi pengelolaan dana zakat, infaq, dan sedekah di LAZIS Masjid Jami' Roudlatul Jannah. Akuntabel dan amanah."
+                url="/transparency"
+                keywords="laporan keuangan, transparansi dana, zakat, infaq, sedekah, akuntabilitas"
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold text-[#022c22] font-serif">Transparansi Dana Umat</h2>
@@ -72,7 +73,7 @@ const TransparencyPage = ({ donations }) => {
                     </div>
 
                     {/* Tabel Mutasi */}
-                    <div className="md:col-span-2 bg-white rounded-[2rem] shadow-xl border border-amber-100 overflow-hidden">
+                    <div className="md:col-span-2 bg-white/90 backdrop-blur-md rounded-[2rem] shadow-xl border border-amber-100 overflow-hidden">
                         <div className="p-8 border-b border-amber-50 bg-[#FFFCF5]"><h3 className="font-bold text-xl text-[#022c22] font-serif">Mutasi Infaq Terbaru</h3></div>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[600px]">

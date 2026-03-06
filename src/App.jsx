@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { supabase } from './supabaseClient';
-import { isAdminDomain } from './config';
+import { AnimatePresence } from 'framer-motion';
+import { useGlobalContext } from './context/GlobalContext';
+import { Toaster } from 'react-hot-toast';
 
-// Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
+import AnimatedPage from './components/AnimatedPage';
 
-// Pages
-import HomePage from './pages/HomePage';
-import ProfilePage from './pages/ProfilePage';
-import DonationPage from './pages/DonationPage';
-import TransparencyPage from './pages/TransparencyPage';
-import ArticlesPage from './pages/ArticlesPage';
-import ArticleDetailPage from './pages/ArticleDetailPage';
-import GalleryPage from './pages/GalleryPage';
-import ContactPage from './pages/ContactPage';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import NotFoundPage from './pages/NotFoundPage';
+// Lazy-loaded Pages
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const DonationPage = lazy(() => import('./pages/DonationPage'));
+const TransparencyPage = lazy(() => import('./pages/TransparencyPage'));
+const ArticlesPage = lazy(() => import('./pages/ArticlesPage'));
+const ArticleDetailPage = lazy(() => import('./pages/ArticleDetailPage'));
+const GalleryPage = lazy(() => import('./pages/GalleryPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+// Fallback Loader
+const PageLoader = () => (
+    <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#064e3b] mx-auto mb-4" />
+            <p className="text-slate-500 font-serif">Memuat halaman...</p>
+        </div>
+    </div>
+);
 
 const GlobalBackground = () => (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#FFFCF5]">
@@ -32,150 +44,71 @@ const GlobalBackground = () => (
 );
 
 function App() {
-    const [user, setUser] = useState(null);
-    const [donations, setDonations] = useState([]);
-    const [articles, setArticles] = useState([]);
-
-    const [isAdminAccess, setIsAdminAccess] = useState(false);
+    const { user, isAdminAccess, loadingAuth } = useGlobalContext();
     const location = useLocation();
-
-    useEffect(() => {
-        setIsAdminAccess(isAdminDomain());
-    }, []);
-
-    // --- FETCH DATA ---
-    const fetchDonations = async () => {
-        const { data, error } = await supabase
-            .from('donations')
-            .select('*')
-            .order('created_at', { ascending: false });
-        if (!error) setDonations(data);
-    };
-
-    const fetchArticles = async () => {
-        const { data, error } = await supabase
-            .from('articles')
-            .select('*')
-            .order('date', { ascending: false });
-        if (!error) setArticles(data);
-    };
-
-    // --- AUTH CHECK ---
-    useEffect(() => {
-        const checkUser = async () => {
-            const { data } = await supabase.auth.getSession();
-            setUser(data.session?.user ?? null);
-        };
-        checkUser();
-
-        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
-
-        const handleFocus = () => {
-            fetchDonations();
-            fetchArticles();
-        };
-
-        window.addEventListener('focus', handleFocus);
-
-        fetchDonations();
-        fetchArticles();
-
-        return () => {
-            authListener.subscription.unsubscribe();
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, []);
-
-    // --- SUBSCRIPTIONS ---
-    useEffect(() => {
-        const donationsSub = supabase
-            .channel('donations_channel')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, fetchDonations)
-            .subscribe();
-
-        const articlesSub = supabase
-            .channel('articles_channel')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'articles' }, fetchArticles)
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(donationsSub);
-            supabase.removeChannel(articlesSub);
-        };
-    }, []);
-
-    // --- HANDLERS ---
-    const handleLogin = async (email, password) => {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-            alert('Login Gagal: ' + error.message);
-            return false;
-        }
-        return true;
-    };
-
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-    };
-
-    const handleNewDonation = async (newDonation) => {
-        const { error } = await supabase.from('donations').insert([newDonation]);
-        if (error) throw error;
-        // Manual fetch backup if Realtime is slow/disabled
-        fetchDonations();
-    };
 
     // Hide Navbar/Footer on Admin Routes
     const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname === '/login';
 
+    if (loadingAuth) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#064e3b] mx-auto mb-4" />
+                    <p className="text-slate-500 font-serif">Memuat modul aplikasi...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="font-sans text-slate-800 relative">
+        <div className="flex flex-col min-h-screen font-sans text-slate-800 relative">
             <GlobalBackground />
+            <Toaster position="top-center" reverseOrder={false} />
 
             {/* Navbar */}
-            {!location.pathname.startsWith('/admin') && location.pathname !== '/login' && <Navbar user={user} showAdminLink={isAdminAccess} />}
+            {!isAdminRoute && <Navbar user={user} showAdminLink={isAdminAccess} />}
 
-            <Routes>
-                <Route path="/" element={<HomePage articles={articles} donations={donations} />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/donate" element={<DonationPage onDonate={handleNewDonation} />} />
-                <Route path="/transparency" element={<TransparencyPage donations={donations} />} />
-                <Route path="/articles" element={<ArticlesPage articles={articles} />} />
-                <Route path="/articles/:id" element={<ArticleDetailPage articles={articles} />} />
-                <Route path="/gallery" element={<GalleryPage />} />
-                <Route path="/contact" element={<ContactPage />} />
+            <main className="flex-grow flex flex-col">
+                <Suspense fallback={<PageLoader />}>
+                    <AnimatePresence mode="wait">
+                        <Routes location={location} key={location.pathname}>
+                            <Route path="/" element={<AnimatedPage><HomePage /></AnimatedPage>} />
+                            <Route path="/profile" element={<AnimatedPage><ProfilePage /></AnimatedPage>} />
+                            <Route path="/donate" element={<AnimatedPage><DonationPage /></AnimatedPage>} />
+                            <Route path="/transparency" element={<AnimatedPage><TransparencyPage /></AnimatedPage>} />
+                            <Route path="/articles" element={<AnimatedPage><ArticlesPage /></AnimatedPage>} />
+                            <Route path="/articles/:id" element={<AnimatedPage><ArticleDetailPage /></AnimatedPage>} />
+                            <Route path="/gallery" element={<AnimatedPage><GalleryPage /></AnimatedPage>} />
+                            <Route path="/contact" element={<AnimatedPage><ContactPage /></AnimatedPage>} />
 
-                {/* Admin Routes - Only accessible if isAdminAccess is true */}
-                {isAdminAccess ? (
-                    <>
-                        <Route path="/login" element={!user ? <AdminLogin onLogin={handleLogin} /> : <Navigate to="/admin" />} />
-                        <Route path="/admin" element={
-                            user ? (
-                                <AdminDashboard
-                                    user={user}
-                                    articles={articles}
-                                    donations={donations}
-                                    fetchArticles={fetchArticles}
-                                    fetchDonations={fetchDonations}
-                                    onLogout={handleLogout}
-                                />
+                            {/* Admin Routes - Only accessible if isAdminAccess is true */}
+                            {isAdminAccess ? (
+                                <>
+                                    <Route path="/login" element={!user ? <AnimatedPage><AdminLogin /></AnimatedPage> : <Navigate to="/admin" />} />
+                                    <Route path="/admin" element={
+                                        user ? (
+                                            <ProtectedRoute requiredRole="admin">
+                                                <AnimatedPage><AdminDashboard /></AnimatedPage>
+                                            </ProtectedRoute>
+                                        ) : (
+                                            <Navigate to="/login" />
+                                        )
+                                    } />
+                                </>
                             ) : (
-                                <Navigate to="/login" />
-                            )
-                        } />
-                    </>
-                ) : (
-                    <>
-                        <Route path="/login" element={<Navigate to="/" replace />} />
-                        <Route path="/admin" element={<Navigate to="/" replace />} />
-                    </>
-                )}
+                                <>
+                                    <Route path="/login" element={<Navigate to="/" replace />} />
+                                    <Route path="/admin" element={<Navigate to="/" replace />} />
+                                </>
+                            )}
 
-                {/* Fallback 404 - Show NotFoundPage */}
-                <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                            {/* Fallback 404 - Show NotFoundPage */}
+                            <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
+                        </Routes>
+                    </AnimatePresence>
+                </Suspense>
+            </main>
 
             {!isAdminRoute && <Footer />}
         </div>

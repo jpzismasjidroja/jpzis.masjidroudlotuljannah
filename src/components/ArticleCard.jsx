@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 const ArticleCard = ({ article }) => {
     // Prioritize slug for the link, fall back to ID
@@ -28,6 +29,19 @@ const ArticleCard = ({ article }) => {
             </div>
         </Link>
     );
+};
+
+ArticleCard.propTypes = {
+    article: PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        slug: PropTypes.string,
+        image: PropTypes.string,
+        title: PropTypes.string.isRequired,
+        category: PropTypes.string,
+        excerpt: PropTypes.string,
+        date: PropTypes.string.isRequired,
+        tags: PropTypes.arrayOf(PropTypes.string),
+    }).isRequired,
 };
 
 export default ArticleCard;

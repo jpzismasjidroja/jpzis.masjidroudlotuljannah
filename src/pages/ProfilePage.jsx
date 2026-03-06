@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Award, History, BookOpen, Users, Star, Leaf } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import useSEO from '../hooks/useSEO';
+import SEO from '../components/SEO';
 
 const ProfilePage = () => {
-
-    useSEO({
-        title: 'Profil Masjid',
-        description: 'Profil, visi misi, sejarah, dan struktur pengurus Masjid Jami\' Roudlatul Jannah. Pusat pemberdayaan dakwah Islam.',
-        url: '/profile',
-        keywords: 'profil masjid, visi misi, sejarah masjid, pengurus masjid, roudlatul jannah'
-    });
 
     const [activeTab, setActiveTab] = useState('visi_misi');
     const [staffMembers, setStaffMembers] = useState([]);
@@ -48,6 +41,12 @@ const ProfilePage = () => {
 
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
+            <SEO
+                title="Profil Masjid"
+                description="Profil, visi misi, sejarah, dan struktur pengurus Masjid Jami' Roudlatul Jannah. Pusat pemberdayaan dakwah Islam."
+                url="/profile"
+                keywords="profil masjid, visi misi, sejarah masjid, pengurus masjid, roudlatul jannah"
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold text-[#29412d] font-serif">Profil Masjid</h1>
@@ -73,7 +72,7 @@ const ProfilePage = () => {
                     ))}
                 </div>
 
-                <div className="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-2xl border border-[#d0a237]/30 min-h-[600px] relative overflow-hidden">
+                <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-6 md:p-12 shadow-2xl border border-[#d0a237]/30 min-h-[600px] relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-5 pointer-events-none"></div>
 
 

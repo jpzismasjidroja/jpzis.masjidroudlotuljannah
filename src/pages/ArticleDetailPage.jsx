@@ -2,36 +2,16 @@ import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Facebook, Instagram, Calendar, User, Tag, ArrowRight, Share2, Clock } from 'lucide-react';
 import DOMPurify from 'dompurify';
-import useSEO from '../hooks/useSEO';
+import SEO from '../components/SEO';
+import { useGlobalContext } from '../context/GlobalContext';
 
-const ArticleDetailPage = ({ articles }) => {
+const ArticleDetailPage = () => {
+    const { articles } = useGlobalContext();
     const { id } = useParams();
 
     // Find current article
     const articleIndex = articles.findIndex(a => a.id == id || a.slug === id);
     const selectedArticle = articles[articleIndex];
-
-
-
-    useSEO({
-        title: selectedArticle?.title || 'Artikel',
-        description: selectedArticle?.excerpt || 'Baca artikel kajian dan berita dari Masjid Jami\' Roudlatul Jannah',
-        image: selectedArticle?.image || '/assets/img/logo.jpg',
-        url: `/articles/${selectedArticle?.slug || id}`,
-        type: 'article',
-        keywords: selectedArticle?.tags?.join(', ') || 'kajian islam, artikel, masjid',
-        structuredData: selectedArticle ? {
-            "@context": "https://schema.org",
-            "@type": "Article",
-            "headline": selectedArticle.title,
-            "image": selectedArticle.image ? [`https://jpzis.masjidroja.com${selectedArticle.image}`] : [],
-            "datePublished": selectedArticle.date,
-            "author": [{
-                "@type": "Person",
-                "name": selectedArticle.author || "Admin"
-            }]
-        } : null
-    });
 
     // Navigation logic
     const prevArticle = articleIndex > 0 ? articles[articleIndex - 1] : null;
@@ -103,6 +83,25 @@ const ArticleDetailPage = ({ articles }) => {
 
     return (
         <div className="bg-[#FFFCF5] min-h-screen font-sans">
+            <SEO
+                title={selectedArticle?.title || 'Artikel'}
+                description={selectedArticle?.excerpt || "Baca artikel kajian dan berita dari Masjid Jami' Roudlatul Jannah"}
+                image={selectedArticle?.image || '/logo-masjid.webp'}
+                url={`/articles/${selectedArticle?.slug || id}`}
+                type="article"
+                keywords={selectedArticle?.tags?.join(', ') || 'kajian islam, artikel, masjid'}
+                structuredData={selectedArticle ? {
+                    "@context": "https://schema.org",
+                    "@type": "Article",
+                    "headline": selectedArticle.title,
+                    "image": selectedArticle.image ? [`https://jpzis.masjidroja.com${selectedArticle.image}`] : [],
+                    "datePublished": selectedArticle.date,
+                    "author": [{
+                        "@type": "Person",
+                        "name": selectedArticle.author || "Admin"
+                    }]
+                } : null}
+            />
             {/* HEADER BACKGROUND */}
             <div className="fixed top-0 inset-x-0 h-24 bg-[#022c22] z-40 shadow-md"></div>
 
@@ -157,7 +156,7 @@ const ArticleDetailPage = ({ articles }) => {
                     </div>
 
                     {/* CONTENT BODY */}
-                    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 md:p-12 overflow-hidden">
+                    <div className="bg-white/90 backdrop-blur-md rounded-[2rem] shadow-sm border border-slate-100 p-8 md:p-12 overflow-hidden">
                         <div
                             className="prose prose-lg prose-slate max-w-none break-words overflow-x-hidden
                                 prose-headings:font-serif prose-headings:text-[#022c22] 

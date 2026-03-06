@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js'; // Import createClient direct
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -13,11 +13,17 @@ import 'react-quill-new/dist/quill.snow.css';
 import { supabase } from '../supabaseClient';
 import { formatRupiah } from '../utils';
 import { compressImage } from '../utils/compressImage';
+import { sanitizeHTML } from '../utils/sanitize';
+import { uploadToGitHub, deleteFromGitHub } from '../utils/githubUpload';
+import { logActivity } from '../utils/auditLogger';
 import ReactQuill, { Quill } from 'react-quill-new';
+import { useGlobalContext } from '../context/GlobalContext';
+import toast from 'react-hot-toast';
 // Register Quill Modules
 // Quill.register('modules/imageResize', ImageResize);
 
-const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonations, onLogout }) => {
+const AdminDashboard = () => {
+    const { user, articles, donations, fetchArticles, fetchDonations, handleLogout: onLogout } = useGlobalContext();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -37,6 +43,8 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
     const [tags, setTags] = useState('');
     const [author, setAuthor] = useState('Administrator');
     const [loading, setLoading] = useState(false);
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [loadingLogs, setLoadingLogs] = useState(false);
 
     // CSV Export State
     const [startDate, setStartDate] = useState('');
@@ -74,10 +82,32 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
     const [isStatEditing, setIsStatEditing] = useState(false);
     const [selectedStat, setSelectedStat] = useState(null);
 
+    // --- DASHBOARD COMPUTATIONS ---
+    const totalDonation = useMemo(() =>
+        donations.reduce((acc, curr) => acc + (curr.amount || 0), 0)
+        , [donations]);
+
+    const verifiedDonation = useMemo(() =>
+        donations.filter(d => d.status === 'verified')
+            .reduce((acc, curr) => acc + (curr.amount || 0), 0)
+        , [donations]);
+
+    const chartData = useMemo(() => {
+        const types = ['Zakat Maal', 'Zakat Fitrah', 'Infaq', 'Sedekah', 'Wakaf'];
+        return types.map(type => ({
+            name: type,
+            value: donations
+                .filter(d => d.type === type && d.status === 'verified')
+                .reduce((acc, curr) => acc + (curr.amount || 0), 0)
+        }));
+    }, [donations]);
+
+    const COLORS = ['#d0a237', '#064e3b', '#022c22', '#F59E0B', '#10B981'];
+
+
     // --- CHECK ROLE ON LOAD ---
     useEffect(() => {
         const checkRole = async () => {
-            console.log("Checking role for user:", user?.email); // DEBUG
             if (user?.email) {
                 const { data, error } = await supabase
                     .from('admin_roles')
@@ -85,12 +115,9 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                     .eq('email', user.email)
                     .single();
 
-                console.log("Role data:", data, "Error:", error); // DEBUG
-
                 if (data) {
-                    setIsAdmin(true); // Both can access dashboard
+                    setIsAdmin(true);
                     if (data.role === 'superadmin') {
-                        console.log("User is Superadmin!"); // DEBUG
                         setIsSuperAdmin(true);
                     }
                 }
@@ -111,6 +138,26 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
     };
 
     // Fetch Admin List (Superadmin Only)
+    const fetchAuditLogs = useCallback(async () => {
+        setLoadingLogs(true);
+        try {
+            const { data, error } = await supabase
+                .from('audit_logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(100);
+            if (error) throw error;
+            setAuditLogs(data || []);
+        } catch (error) {
+            console.error('Gagal mengambil logs:', error);
+        } finally {
+            setLoadingLogs(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'logs') fetchAuditLogs();
+    }, [activeTab, fetchAuditLogs]);
     const fetchAdmins = async () => {
         if (!isSuperAdmin) return;
         setAdminLoading(true);
@@ -180,18 +227,6 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         'link', 'image', 'video'
     ];
 
-    const COLORS = ['#29412d', '#113642', '#d0a237', '#8c6b24', '#1f3322'];
-
-    // --- CHART DATA ---
-    const chartData = useMemo(() => {
-        const agg = {};
-        donations.forEach(d => {
-            const type = d.type.split(' ')[0];
-            if (!agg[type]) agg[type] = 0;
-            agg[type] += d.amount;
-        });
-        return Object.keys(agg).map(key => ({ name: key, value: agg[key] }));
-    }, [donations]);
 
     // --- HANDLERS ---
     const resetForm = () => {
@@ -233,8 +268,8 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 try {
                     const fileName = article.image.substring(article.image.lastIndexOf('/') + 1);
                     if (fileName) {
-                        const { error: storageError } = await supabase.storage.from('article-images').remove([fileName]);
-                        if (storageError) console.warn('Gagal menghapus gambar:', storageError);
+                        await deleteFromGitHub(article.image);
+                        // if (storageError) console.warn('Gagal menghapus gambar:', storageError);
                     }
                 } catch (err) {
                     console.warn('Error parsing image URL:', err);
@@ -247,9 +282,13 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
 
             fetchArticles();
             if (selectedArticle?.id === article.id) resetForm();
-            alert('Artikel berhasil dihapus.');
+
+            // Log Activity
+            await logActivity(user?.email, 'DELETE', 'articles', `Menghapus artikel: ${article.title}`);
+
+            toast.success('Artikel berhasil dihapus.');
         } catch (error) {
-            alert('Gagal menghapus: ' + error.message);
+            toast.error('Gagal menghapus: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -272,7 +311,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 if (isEditing && selectedArticle && selectedArticle.image) {
                     try {
                         const oldFileName = selectedArticle.image.substring(selectedArticle.image.lastIndexOf('/') + 1);
-                        if (oldFileName) await supabase.storage.from('article-images').remove([oldFileName]);
+                        if (oldFileName) await deleteFromGitHub(selectedArticle.image);
                     } catch (err) {
                         console.warn('Failed to delete old image', err);
                     }
@@ -281,16 +320,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 // Upload new compressed image
                 const fileExt = compressedFile.name.split('.').pop();
                 const fileName = `${Date.now()}-${slug}.${fileExt}`;
-                const { error: uploadError } = await supabase.storage
-                    .from('article-images')
-                    .upload(fileName, compressedFile);
-
-                if (uploadError) throw uploadError;
-
-                const { data: urlData } = supabase.storage
-                    .from('article-images')
-                    .getPublicUrl(fileName);
-                imageUrl = urlData.publicUrl;
+                imageUrl = await uploadToGitHub(compressedFile, 'article-images', fileName);
             }
 
             // Process tags
@@ -301,7 +331,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                 category,
                 excerpt,
-                content,
+                content: sanitizeHTML(content), // Sanitasi konten rich text
                 image: imageUrl,
                 status: finalStatus,
                 tags: tagsArray,
@@ -326,11 +356,20 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
 
             fetchArticles();
             resetForm();
-            alert(isEditing ? 'Artikel diperbarui!' : 'Artikel disimpan!');
+
+            // Log Activity
+            await logActivity(
+                user?.email,
+                isEditing ? 'UPDATE' : 'CREATE',
+                'articles',
+                `${isEditing ? 'Mengubah' : 'Membuat'} artikel: ${articleData.title}`
+            );
+
+            toast.success(isEditing ? 'Artikel diperbarui!' : 'Artikel berhasil diterbitkan!');
             setActiveTab('content');
 
         } catch (error) {
-            alert('Error: ' + error.message);
+            toast.error('Error: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -349,24 +388,34 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         }
 
         if (filteredData.length === 0) {
-            alert('Tidak ada data pada periode yang dipilih.');
+            toast.error('Tidak ada data pada periode yang dipilih.');
             return;
         }
+
+        // CSV Injection Protection: escape cells starting with dangerous characters
+        const escapeCSV = (val) => {
+            if (val == null) return '-';
+            const str = String(val);
+            if (/^[=+\-@\t\r]/.test(str)) {
+                return `'${str}`; // Prefix dengan single quote untuk mencegah formula injection
+            }
+            return str;
+        };
 
         // Generate CSV Content
         const headers = ['Tanggal', 'Donatur', 'Email', 'Telepon', 'Tipe', 'Metode', 'Nominal', 'Status', 'Bukti URL'];
         const csvContent = [
             headers.join(','),
             ...filteredData.map(d => [
-                new Date(d.created_at).toLocaleDateString(),
-                `"${d.name}"`, // Quote to handle commas in names
-                d.email || '-',
-                d.phone || '-',
-                d.type,
-                d.method,
+                escapeCSV(new Date(d.created_at).toLocaleDateString()),
+                `"${escapeCSV(d.name)}"`,
+                escapeCSV(d.email || '-'),
+                escapeCSV(d.phone || '-'),
+                escapeCSV(d.type),
+                escapeCSV(d.method),
                 d.amount,
-                d.status,
-                d.proof_url
+                escapeCSV(d.status),
+                escapeCSV(d.proof_url)
             ].join(','))
         ].join('\n');
 
@@ -390,8 +439,13 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 .eq('id', id);
             if (error) throw error;
             fetchDonations();
+
+            // Log Activity
+            await logActivity(user?.email, 'VERIFY', 'donations', `Verifikasi donasi ID: ${id} menjadi ${status}`);
+
+            toast.success('Status donasi diperbarui.');
         } catch (error) {
-            alert('Gagal update status: ' + error.message);
+            toast.error('Gagal update status: ' + error.message);
         }
     };
 
@@ -406,34 +460,25 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 // Compress Image
                 const compressedFile = await compressImage(file);
 
-                // Upload to Storage
+                // Upload to GitHub
                 const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
-                const { error: uploadError } = await supabase.storage
-                    .from('gallery-images')
-                    .upload(fileName, compressedFile);
-
-                if (uploadError) throw uploadError;
-
-                // Get Public URL
-                const { data: urlData } = supabase.storage
-                    .from('gallery-images')
-                    .getPublicUrl(fileName);
+                const uploadedUrl = await uploadToGitHub(compressedFile, 'gallery-images', fileName);
 
                 // Save to Database
                 const { error: dbError } = await supabase
                     .from('gallery')
                     .insert([{
-                        image_url: urlData.publicUrl,
+                        image_url: uploadedUrl,
                         caption: file.name.split('.')[0] // Default caption from filename
                     }]);
 
                 if (dbError) throw dbError;
             }
-            alert('Berhasil mengupload foto!');
+            toast.success('Berhasil mengupload foto!');
             fetchGallery();
         } catch (error) {
             console.error(error);
-            alert('Gagal upload: ' + error.message);
+            toast.error('Gagal upload: ' + error.message);
         } finally {
             setUploading(false);
         }
@@ -449,12 +494,12 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             // Extract filename from URL to delete from storage (Optional but recommended)
             const fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
             if (fileName) {
-                await supabase.storage.from('gallery-images').remove([fileName]);
+                await deleteFromGitHub(imageUrl);
             }
 
             fetchGallery();
         } catch (error) {
-            alert('Gagal menghapus: ' + error.message);
+            toast.error('Gagal menghapus: ' + error.message);
         }
     };
 
@@ -475,7 +520,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             setEditingImageId(null);
             fetchGallery();
         } catch (error) {
-            alert('Gagal update caption: ' + error.message);
+            toast.error('Gagal update caption: ' + error.message);
         }
     };
 
@@ -487,7 +532,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
         // Password Policy yang lebih kuat
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
         if (!passwordRegex.test(newAdminPassword)) {
-            alert('Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, dan angka');
+            toast.error('Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, dan angka');
             return;
         }
 
@@ -524,21 +569,21 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             if (dbError) {
                 // Determine if error is "Already exists"
                 if (dbError.code === '23505') { // Unique violation
-                    alert('Email sudah terdaftar sebagai admin d database.');
+                    toast.error('Email sudah terdaftar sebagai admin d database.');
                 } else {
                     throw dbError;
                 }
             }
 
             // SECURITY: Tidak menampilkan password di alert
-            alert(`Sukses! Admin baru dibuat dengan email: ${newAdminEmail}\n\nCatatan: Simpan password dengan aman dan segera minta admin baru untuk mengganti password.`);
+            toast.success(`Sukses! Admin baru dibuat dengan email: ${newAdminEmail}\n\nCatatan: Simpan password dengan aman dan segera minta admin baru untuk mengganti password.`, { duration: 6000 });
             setNewAdminEmail('');
             setNewAdminPassword('');
             fetchAdmins();
 
         } catch (error) {
             console.error(error);
-            alert('Gagal menambah admin: ' + error.message);
+            toast.error('Gagal menambah admin: ' + error.message);
         } finally {
             setAdminLoading(false);
         }
@@ -554,7 +599,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             if (error) throw error;
             fetchAdmins();
         } catch (error) {
-            alert('Gagal menghapus: ' + error.message);
+            toast.error('Gagal menghapus: ' + error.message);
         }
     };
 
@@ -585,12 +630,12 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             // Optional: delete image from storage
             if (imageUrl) {
                 const fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-                if (fileName) await supabase.storage.from('pengurus-images').remove([fileName]);
+                if (fileName) await deleteFromGitHub(imageUrl);
             }
 
             fetchPengurus();
         } catch (error) {
-            alert('Gagal menghapus: ' + error.message);
+            toast.error('Gagal menghapus: ' + error.message);
         }
     };
 
@@ -605,18 +650,9 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                 // Compress Image
                 const compressedFile = await compressImage(pengurusImageFile);
 
-                // Upload
+                // Upload to GitHub
                 const fileName = `${Date.now()}-${pengurusName.replace(/[^a-zA-Z0-9]/g, '')}.webp`;
-                const { error: uploadError } = await supabase.storage
-                    .from('pengurus-images')
-                    .upload(fileName, compressedFile);
-
-                if (uploadError) throw uploadError;
-
-                const { data: urlData } = supabase.storage
-                    .from('pengurus-images')
-                    .getPublicUrl(fileName);
-                imageUrl = urlData.publicUrl;
+                imageUrl = await uploadToGitHub(compressedFile, 'pengurus-images', fileName);
             }
 
             const data = {
@@ -640,10 +676,10 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
 
             fetchPengurus();
             resetPengurusForm();
-            alert(isPengurusEditing ? 'Data pengurus diperbarui!' : 'Pengurus ditambahkan!');
+            toast.success(isPengurusEditing ? 'Data pengurus diperbarui!' : 'Pengurus ditambahkan!');
 
         } catch (error) {
-            alert('Error: ' + error.message);
+            toast.error('Error: ' + error.message);
         } finally {
             setPengurusLoading(false);
         }
@@ -673,7 +709,7 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
             if (error) throw error;
             fetchStats();
         } catch (error) {
-            alert('Gagal menghapus: ' + error.message);
+            toast.error('Gagal menghapus: ' + error.message);
         }
     };
 
@@ -703,17 +739,15 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
 
             fetchStats();
             resetStatForm();
-            alert(isStatEditing ? 'Data statistik diperbarui!' : 'Statistik ditambahkan!');
+            toast.success(isStatEditing ? 'Data statistik diperbarui!' : 'Statistik ditambahkan!');
         } catch (error) {
-            alert('Error: ' + error.message);
+            toast.error('Error: ' + error.message);
         } finally {
             setStatsLoading(false);
         }
     };
 
-    // Calculate Totals
-    const totalDonation = donations.reduce((sum, item) => sum + item.amount, 0);
-    const verifiedDonation = donations.filter(d => d.status === 'verified').reduce((sum, item) => sum + item.amount, 0);
+    // Calculate Totals - REMOVED DUPLICATE
 
     return (
         <div className="min-h-screen bg-slate-50 flex font-sans">
@@ -746,9 +780,14 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                     <button onClick={() => { setActiveTab('stats'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'stats' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}><TrendingUp size={20} /> Statistik</button>
 
                     {isSuperAdmin && (
-                        <button onClick={() => { setActiveTab('admins'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'admins' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}>
-                            <Shield size={20} /> Manajemen Admin
-                        </button>
+                        <>
+                            <button onClick={() => { setActiveTab('admins'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'admins' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}>
+                                <Shield size={20} /> Manajemen Admin
+                            </button>
+                            <button onClick={() => { setActiveTab('logs'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === 'logs' ? 'bg-[#d0a237] text-[#022c22] font-bold shadow-lg' : 'hover:bg-white/5 text-amber-100/70'}`}>
+                                <ShieldAlert size={20} /> Log Aktivitas
+                            </button>
+                        </>
                     )}
                 </nav>
                 <div className="absolute bottom-0 w-full p-4 border-t border-amber-500/20">
@@ -1262,6 +1301,64 @@ const AdminDashboard = ({ user, articles, donations, fetchArticles, fetchDonatio
                                         </div>
                                     ))
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* TAB: LOG AKTIVITAS */}
+                {activeTab === 'logs' && (
+                    <div className="space-y-6 animate-in fade-in duration-500">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-slate-800">Log Aktivitas Admin</h2>
+                            <button onClick={fetchAuditLogs} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-all">
+                                <RefreshCw size={16} className={loadingLogs ? 'animate-spin' : ''} /> Refresh
+                            </button>
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-50 border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Waktu</th>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Admin</th>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Aksi</th>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Target</th>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Detail</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {loadingLogs ? (
+                                            <tr>
+                                                <td colSpan="5" className="px-6 py-12 text-center text-slate-400">
+                                                    <Loader2 className="animate-spin mx-auto mb-2" /> Memuat log...
+                                                </td>
+                                            </tr>
+                                        ) : auditLogs.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="5" className="px-6 py-12 text-center text-slate-400">Belum ada catatan aktivitas.</td>
+                                            </tr>
+                                        ) : auditLogs.map((log) => (
+                                            <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-slate-500">
+                                                    {new Date(log.created_at).toLocaleString('id-ID')}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-medium text-slate-700">{log.user_email}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' :
+                                                        log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700' :
+                                                            log.action === 'DELETE' ? 'bg-red-100 text-red-700' :
+                                                                'bg-amber-100 text-amber-700'
+                                                        }`}>
+                                                        {log.action}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-slate-600 font-mono">{log.target_table}</td>
+                                                <td className="px-6 py-4 text-sm text-slate-600 italic">{log.details}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

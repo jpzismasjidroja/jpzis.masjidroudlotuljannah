@@ -1,0 +1,89 @@
+﻿
+> website-masjid@0.0.0 lint
+> eslint .
+
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\functions\api\verify-turnstile.js
+  65:14  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\optimize_images.js
+  6:21  error  'process' is not defined  no-undef
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\components\TurnstileWidget.jsx
+  18:26  error  'e' is defined but never used  no-unused-vars
+  59:26  error  'e' is defined but never used  no-unused-vars
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\context\GlobalContext.jsx
+  17:9   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 |
+  16 |     useEffect(() => {
+> 17 |         setIsAdminAccess(isAdminDomain());
+     |         ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |     }, []);
+  19 |
+  20 |     const value = {  react-hooks/set-state-in-effect
+  34:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-refresh/only-export-components
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\hooks\useArticles.js
+  19:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |
+  18 |     useEffect(() => {
+> 19 |         fetchArticles();
+     |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |
+  21 |         const articlesSub = supabase
+  22 |             .channel('articles_channel')  react-hooks/set-state-in-effect
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\hooks\useDonations.js
+  19:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  17 |
+  18 |     useEffect(() => {
+> 19 |         fetchDonations();
+     |         ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |
+  21 |         const donationsSub = supabase
+  22 |             .channel('donations_channel')  react-hooks/set-state-in-effect
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\pages\AdminDashboard.jsx
+   29:12  error    'isAdmin' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                         no-unused-vars
+   85:31  error    'error' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                           no-unused-vars
+  153:8   warning  React Hook useEffect has a missing dependency: 'fetchAdmins'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  522:27  error    'authData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                        no-unused-vars
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\pages\ArticleDetailPage.jsx
+   1:17  error  'useMemo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  69:26  error  'e' is defined but never used                                                   no-unused-vars
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\pages\DonationPage.jsx
+  37:12  error  'copied' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\src\pages\HomePage.jsx
+  25:11  error    'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                              no-unused-vars
+  69:8   warning  React Hook useEffect has a missing dependency: 'quotesData.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Nanda Addi\website-masjid - Theme 2 - Rev 1 - Copy\tailwind.config.js
+  11:5  error  'require' is not defined  no-undef
+
+Γ£û 18 problems (16 errors, 2 warnings)
+

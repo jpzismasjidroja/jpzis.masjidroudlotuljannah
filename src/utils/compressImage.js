@@ -6,7 +6,6 @@ import imageCompression from 'browser-image-compression';
  * @returns {Promise<File>} The compressed image file
  */
 export const compressImage = async (imageFile) => {
-    console.log('Original File:', imageFile.size / 1024 / 1024, 'MB');
 
     const options = {
         maxSizeMB: 0.5,           // Max size in MegaBytes
@@ -18,7 +17,6 @@ export const compressImage = async (imageFile) => {
 
     try {
         const compressedFile = await imageCompression(imageFile, options);
-        console.log('Compressed File:', compressedFile.size / 1024 / 1024, 'MB');
 
         // Ensure the file extension is correct for the new blob
         const newFile = new File([compressedFile], imageFile.name.replace(/\.[^/.]+$/, "") + ".webp", {
@@ -32,3 +30,4 @@ export const compressImage = async (imageFile) => {
         throw error; // Rethrow to handle in UI
     }
 };
+

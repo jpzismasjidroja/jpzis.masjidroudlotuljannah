@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 const TurnstileWidget = ({ onVerify }) => {
     const containerRef = useRef(null);
@@ -72,6 +73,10 @@ const TurnstileWidget = ({ onVerify }) => {
     }
 
     return <div ref={containerRef} className="flex justify-center my-4"></div>;
+};
+
+TurnstileWidget.propTypes = {
+    onVerify: PropTypes.func.isRequired,
 };
 
 export default TurnstileWidget;

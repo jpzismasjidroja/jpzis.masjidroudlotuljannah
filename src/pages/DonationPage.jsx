@@ -3,17 +3,17 @@ import { supabase } from '../supabaseClient';
 import { Calculator, CheckCircle, User, Wallet, CreditCard, Copy, UploadCloud, Image as ImageIcon, X } from 'lucide-react';
 import ZakatCalculator from '../components/ZakatCalculator';
 import TurnstileWidget from '../components/TurnstileWidget';
-import useSEO from '../hooks/useSEO';
+import SEO from '../components/SEO';
 import { compressImage } from '../utils/compressImage';
+import { sanitizeText } from '../utils/sanitize';
+import { validateImageFile, MIME_TO_EXT } from '../utils/validateImage';
+import { verifyTurnstileToken } from '../utils/verifyTurnstile';
+import { useGlobalContext } from '../context/GlobalContext';
+import { uploadToGitHub } from '../utils/githubUpload';
+import toast from 'react-hot-toast';
 
-const DonationPage = ({ onDonate }) => {
-    useSEO({
-        title: 'Donasi Online',
-        description: 'Salurkan zakat, infaq, sedekah, dan wakaf Anda secara online dengan mudah dan transparan di LAZIS Masjid Jami\' Roudlatul Jannah.',
-        url: '/donate',
-        keywords: 'donasi online, zakat online, infaq, sedekah, wakaf, LAZIS'
-    });
-
+const DonationPage = () => {
+    const { handleNewDonation } = useGlobalContext();
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -77,10 +77,7 @@ const DonationPage = ({ onDonate }) => {
     };
 
 
-    const sanitizeText = (text) => {
-
-        return text.replace(/<[^>]*>/g, '').trim();
-    };
+    // sanitizeText sekarang menggunakan DOMPurify dari '../utils/sanitize'
 
     const validatePhone = (phone) => {
 
@@ -88,18 +85,8 @@ const DonationPage = ({ onDonate }) => {
         return phoneRegex.test(phone.replace(/[\s-]/g, ''));
     };
 
-    const validateFile = (file) => {
-
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-            return { valid: false, error: 'Hanya file gambar (JPG, PNG, GIF, WEBP) yang diperbolehkan.' };
-        }
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        if (file.size > maxSize) {
-            return { valid: false, error: 'Ukuran file maksimal 5MB.' };
-        }
-        return { valid: true };
-    };
+    // validateFile sekarang menggunakan validateImageFile dari '../utils/validateImage'
+    // yang memvalidasi MIME type + magic bytes + ukuran file
 
 
     const handleFileChange = async (e) => {
@@ -109,9 +96,10 @@ const DonationPage = ({ onDonate }) => {
             return;
         }
 
-        // Basic Type Validation Before Compression
-        if (!file.type.startsWith('image/')) {
-            alert('Mohon upload file gambar yang valid.');
+        // Validasi magic bytes sebelum kompresi
+        const validation = await validateImageFile(file);
+        if (!validation.valid) {
+            toast.error(validation.error);
             e.target.value = ''; // Reset input
             return;
         }
@@ -122,7 +110,7 @@ const DonationPage = ({ onDonate }) => {
             setProof(compressed);
         } catch (error) {
             console.error('Error compressing image:', error);
-            alert('Gagal memproses gambar. Mohon gunakan file lain.');
+            toast.error('Gagal memproses gambar. Mohon gunakan file lain.');
             e.target.value = ''; // Reset input
         } finally {
             setIsCompressing(false);
@@ -136,65 +124,53 @@ const DonationPage = ({ onDonate }) => {
 
 
         if (!turnstileToken) {
-            alert('Harap verifikasi bahwa Anda bukan robot.');
+            toast.error('Harap verifikasi bahwa Anda bukan robot.');
+            return;
+        }
+
+        // Verifikasi Turnstile token di server-side
+        const isHuman = await verifyTurnstileToken(turnstileToken);
+        if (!isHuman) {
+            toast.error('Verifikasi keamanan gagal. Silakan muat ulang halaman dan coba lagi.');
             return;
         }
 
 
         if (!proof && !isCompressing) {
-            alert("Mohon upload bukti pembayaran terlebih dahulu.");
+            toast.error("Mohon upload bukti pembayaran terlebih dahulu.");
             return;
         }
 
         if (isCompressing) {
-            alert("Sedang memproses gambar. Mohon tunggu sebentar.");
-            return;
-        }
-
-
-        const fileValidation = validateFile(proof);
-        if (!fileValidation.valid) {
-            alert(fileValidation.error);
+            toast.error("Sedang memproses gambar. Mohon tunggu sebentar.");
             return;
         }
 
 
         if (!validatePhone(phone)) {
-            alert("Nomor telepon tidak valid. Gunakan 10-15 digit angka.");
+            toast.error("Nomor telepon tidak valid. Gunakan 10-15 digit angka.");
             return;
         }
 
 
         const numAmount = parseInt(amount.toString().replace(/[^0-9]/g, ''), 10);
         if (isNaN(numAmount) || numAmount < 1000) { // Min donation Rp 1.000
-            alert("Nominal donasi minimal Rp 1.000.");
+            toast.error("Nominal donasi minimal Rp 1.000.");
             return;
         }
         if (numAmount > 1000000000000) {
-            alert("Nominal donasi terlalu besar. Silakan hubungi admin untuk donasi khusus.");
+            toast.error("Nominal donasi terlalu besar. Silakan hubungi admin untuk donasi khusus.");
             return;
         }
 
         setIsUploading(true);
 
         try {
-            // 1. Upload Gambar ke Supabase Storage
-            const fileExt = proof.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            // 1. Upload Gambar ke GitHub
+            const safeExt = MIME_TO_EXT[proof.type] || 'webp';
+            const fileName = `${Date.now()}.${safeExt}`;
 
-            const { error: uploadError } = await supabase.storage
-                .from('donation-proofs')
-                .upload(filePath, proof);
-
-            if (uploadError) throw uploadError;
-
-            // 2. Ambil Public URL dari gambar
-            const { data: urlData } = supabase.storage
-                .from('donation-proofs')
-                .getPublicUrl(filePath);
-
-            const publicUrl = urlData.publicUrl;
+            const publicUrl = await uploadToGitHub(proof, 'donation-proofs', fileName);
 
             // 3. Siapkan Data untuk Database (dengan sanitasi)
             const newDonation = {
@@ -210,13 +186,13 @@ const DonationPage = ({ onDonate }) => {
             };
 
             // 4. Kirim data ke function parent
-            await onDonate(newDonation);
+            await handleNewDonation(newDonation);
 
             setSubmitted(true);
 
         } catch (error) {
             console.error('Error saat upload:', error);
-            alert('Gagal mengirim donasi: ' + error.message);
+            toast.error('Gagal mengirim donasi: ' + error.message);
         } finally {
             setIsUploading(false);
         }
@@ -224,6 +200,12 @@ const DonationPage = ({ onDonate }) => {
 
     return (
         <div className="pt-32 pb-20 bg-transparent min-h-screen">
+            <SEO
+                title="Donasi Online"
+                description="Salurkan zakat, infaq, sedekah, dan wakaf Anda secara online dengan mudah dan transparan di LAZIS Masjid Jami' Roudlatul Jannah."
+                url="/donate"
+                keywords="donasi online, zakat online, infaq, sedekah, wakaf, LAZIS"
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16 relative">
 
@@ -250,7 +232,7 @@ const DonationPage = ({ onDonate }) => {
                         </button>
                     </div>
                     <div className="md:col-span-2 min-w-0">
-                        <div className="bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl border border-amber-100 relative overflow-hidden">
+                        <div className="bg-white/90 backdrop-blur-md p-8 md:p-12 rounded-[2rem] shadow-2xl border border-amber-100 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-[80px] -z-10"></div>
                             {submitted ? (
                                 <div className="text-center py-16">

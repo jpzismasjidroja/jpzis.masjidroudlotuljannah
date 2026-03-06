@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Star, Heart, ArrowRight, FileText, Wallet, CheckCircle, TrendingUp, Users, Image as ImageIcon } from 'lucide-react';
 import { formatRupiah } from '../utils';
 import ArticleCard from '../components/ArticleCard';
-import useSEO from '../hooks/useSEO';
+import ArticleCardSkeleton from '../components/ui/ArticleCardSkeleton';
+import SEO from '../components/SEO';
 import { supabase } from '../supabaseClient';
+import { useGlobalContext } from '../context/GlobalContext';
 
 const QuoteIcon = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12,14 +14,8 @@ const QuoteIcon = ({ className }) => (
     </svg>
 );
 
-const HomePage = ({ articles, donations }) => {
-    useSEO({
-        title: 'Beranda',
-        description: 'Website resmi LAZIS Masjid Jami\' Roudlatul Jannah. Salurkan zakat, infaq, dan sedekah Anda dengan mudah dan transparan.',
-        url: '/',
-        keywords: 'masjid, roudlatul jannah, lazis, zakat, infaq, sedekah, donasi online'
-    });
-
+const HomePage = () => {
+    const { articles, donations, loadingArticles } = useGlobalContext();
     const navigate = useNavigate();
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
@@ -70,6 +66,12 @@ const HomePage = ({ articles, donations }) => {
 
     return (
         <div className="bg-transparent">
+            <SEO
+                title="Beranda"
+                description="Website resmi LAZIS Masjid Jami' Roudlatul Jannah. Salurkan zakat, infaq, dan sedekah Anda dengan mudah dan transparan."
+                url="/"
+                keywords="masjid, roudlatul jannah, lazis, zakat, infaq, sedekah, donasi online"
+            />
             <div className="relative pt-32 pb-48 lg:pt-48 lg:pb-64 overflow-hidden bg-[#29412d] min-h-[85vh] flex items-center">
                 <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
                     <svg className="relative block w-[calc(100%+1.3px)] h-[80px] md:h-[150px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -250,9 +252,13 @@ const HomePage = ({ articles, donations }) => {
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-8">
-                        {articles && articles.slice(0, 3).map((article) => (
-                            <ArticleCard key={article.id} article={article} />
-                        ))}
+                        {loadingArticles ? (
+                            [1, 2, 3].map(n => <ArticleCardSkeleton key={n} />)
+                        ) : (
+                            articles && articles.slice(0, 3).map((article) => (
+                                <ArticleCard key={article.id} article={article} />
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
